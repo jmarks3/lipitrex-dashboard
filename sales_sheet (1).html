@@ -1,0 +1,926 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>TikTok Growth System — Edema Supplement</title>
+<link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,400;0,600;1,400&family=DM+Mono:wght@300;400&family=DM+Sans:wght@300;400;500&display=swap" rel="stylesheet">
+<style>
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+  :root {
+    --ink: #0e0e0e;
+    --paper: #f5f2ed;
+    --cream: #ede9e1;
+    --gold: #b8922a;
+    --gold-light: #d4aa4a;
+    --muted: #6b6560;
+    --rule: #d4cfc8;
+  }
+
+  html { scroll-behavior: smooth; }
+
+  body {
+    background: var(--paper);
+    color: var(--ink);
+    font-family: 'DM Sans', sans-serif;
+    font-weight: 300;
+    line-height: 1.6;
+    -webkit-font-smoothing: antialiased;
+  }
+
+  /* HERO */
+  .hero {
+    min-height: 100vh;
+    display: grid;
+    grid-template-rows: auto 1fr auto;
+    padding: 0;
+    position: relative;
+    overflow: hidden;
+    background: var(--ink);
+  }
+
+  .hero-bg {
+    position: absolute;
+    inset: 0;
+    background:
+      radial-gradient(ellipse 80% 60% at 70% 40%, #1e1608 0%, transparent 60%),
+      radial-gradient(ellipse 50% 80% at 20% 80%, #0a1208 0%, transparent 50%),
+      var(--ink);
+  }
+
+  .hero-grain {
+    position: absolute;
+    inset: 0;
+    opacity: 0.04;
+    background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noise'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noise)'/%3E%3C/svg%3E");
+    background-size: 200px;
+  }
+
+  .hero-top {
+    position: relative;
+    z-index: 2;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 32px 48px;
+    border-bottom: 1px solid #ffffff08;
+  }
+
+  .wordmark {
+    font-family: 'DM Mono', monospace;
+    font-size: 11px;
+    letter-spacing: 4px;
+    color: var(--gold);
+    text-transform: uppercase;
+  }
+
+  .hero-badge {
+    font-family: 'DM Mono', monospace;
+    font-size: 10px;
+    letter-spacing: 3px;
+    color: #aaaaaa;
+    text-transform: uppercase;
+  }
+
+  .hero-body {
+    position: relative;
+    z-index: 2;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    padding: 60px 48px;
+    max-width: 900px;
+  }
+
+  .hero-eyebrow {
+    font-family: 'DM Mono', monospace;
+    font-size: 10px;
+    letter-spacing: 5px;
+    color: var(--gold);
+    text-transform: uppercase;
+    margin-bottom: 28px;
+    opacity: 0;
+    animation: fadeUp 0.8s 0.2s forwards;
+  }
+
+  .hero-title {
+    font-family: 'Playfair Display', serif;
+    font-size: clamp(42px, 7vw, 88px);
+    font-weight: 400;
+    line-height: 1.0;
+    color: #f5f2ed;
+    margin-bottom: 32px;
+    opacity: 0;
+    animation: fadeUp 0.8s 0.4s forwards;
+  }
+
+  .hero-title em {
+    font-style: italic;
+    color: var(--gold-light);
+  }
+
+  .hero-sub {
+    font-size: 17px;
+    color: #bbbbbb;
+    max-width: 520px;
+    line-height: 1.7;
+    font-weight: 300;
+    opacity: 0;
+    animation: fadeUp 0.8s 0.6s forwards;
+  }
+
+  .hero-bottom {
+    position: relative;
+    z-index: 2;
+    padding: 32px 48px;
+    border-top: 1px solid #ffffff08;
+    display: flex;
+    gap: 48px;
+  }
+
+  .hero-stat {
+    opacity: 0;
+    animation: fadeUp 0.8s 0.8s forwards;
+  }
+
+  .hero-stat-num {
+    font-family: 'Playfair Display', serif;
+    font-size: 32px;
+    color: var(--gold-light);
+    line-height: 1;
+    margin-bottom: 4px;
+  }
+
+  .hero-stat-label {
+    font-family: 'DM Mono', monospace;
+    font-size: 10px;
+    letter-spacing: 2px;
+    color: #aaaaaa;
+    text-transform: uppercase;
+  }
+
+  /* SECTIONS */
+  section {
+    padding: 96px 48px;
+    max-width: 1100px;
+    margin: 0 auto;
+  }
+
+  .section-rule {
+    width: 48px;
+    height: 1px;
+    background: var(--gold);
+    margin-bottom: 20px;
+  }
+
+  .section-label {
+    font-family: 'DM Mono', monospace;
+    font-size: 10px;
+    letter-spacing: 4px;
+    color: #8a6a10;
+    text-transform: uppercase;
+    margin-bottom: 40px;
+  }
+
+  .section-title {
+    font-family: 'Playfair Display', serif;
+    font-size: clamp(28px, 4vw, 48px);
+    font-weight: 400;
+    line-height: 1.15;
+    margin-bottom: 24px;
+    color: var(--ink);
+  }
+
+  .section-title em { font-style: italic; color: var(--gold); }
+
+  .section-body {
+    font-size: 16px;
+    color: var(--muted);
+    max-width: 640px;
+    line-height: 1.8;
+  }
+
+  hr.divider {
+    border: none;
+    border-top: 1px solid var(--rule);
+    margin: 0 48px;
+  }
+
+  /* PERSONAS */
+  .personas-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+    gap: 2px;
+    margin-top: 56px;
+    background: var(--rule);
+  }
+
+  .persona-card {
+    background: var(--paper);
+    padding: 36px 32px;
+    position: relative;
+    transition: background 0.2s;
+  }
+
+  .persona-card:hover { background: var(--cream); }
+
+  .persona-num {
+    font-family: 'Playfair Display', serif;
+    font-size: 48px;
+    color: var(--rule);
+    line-height: 1;
+    margin-bottom: 16px;
+  }
+
+  .persona-name {
+    font-family: 'Playfair Display', serif;
+    font-size: 22px;
+    font-weight: 600;
+    margin-bottom: 6px;
+    color: var(--ink);
+  }
+
+  .persona-tag {
+    font-family: 'DM Mono', monospace;
+    font-size: 10px;
+    letter-spacing: 2px;
+    color: #8a6a10;
+    text-transform: uppercase;
+    margin-bottom: 20px;
+  }
+
+  .persona-stat {
+    font-size: 13px;
+    color: var(--muted);
+    font-style: italic;
+    margin-bottom: 20px;
+    padding-bottom: 20px;
+    border-bottom: 1px solid var(--rule);
+  }
+
+  .pain-list { list-style: none; }
+
+  .pain-list li {
+    font-size: 13px;
+    color: var(--muted);
+    padding: 6px 0;
+    padding-left: 16px;
+    position: relative;
+    line-height: 1.5;
+  }
+
+  .pain-list li::before {
+    content: '—';
+    position: absolute;
+    left: 0;
+    color: var(--gold);
+    font-size: 11px;
+  }
+
+  /* PROCESS */
+  .process-steps {
+    margin-top: 56px;
+    display: grid;
+    gap: 0;
+  }
+
+  .process-step {
+    display: grid;
+    grid-template-columns: 80px 1fr;
+    gap: 32px;
+    padding: 40px 0;
+    border-bottom: 1px solid var(--rule);
+    align-items: start;
+  }
+
+  .process-step:last-child { border-bottom: none; }
+
+  .step-num {
+    font-family: 'Playfair Display', serif;
+    font-size: 48px;
+    color: var(--rule);
+    line-height: 1;
+    padding-top: 4px;
+  }
+
+  .step-content {}
+
+  .step-title {
+    font-family: 'Playfair Display', serif;
+    font-size: 22px;
+    margin-bottom: 10px;
+    color: var(--ink);
+  }
+
+  .step-body {
+    font-size: 15px;
+    color: var(--muted);
+    line-height: 1.7;
+    max-width: 560px;
+  }
+
+  .step-tag {
+    display: inline-block;
+    margin-top: 14px;
+    font-family: 'DM Mono', monospace;
+    font-size: 10px;
+    letter-spacing: 2px;
+    color: #6b4e0a;
+    text-transform: uppercase;
+    border: 1px solid #8a6a10;
+    padding: 4px 10px;
+    border-radius: 2px;
+  }
+
+  /* ACCESS */
+  .access-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(260px, 1fr));
+    gap: 24px;
+    margin-top: 56px;
+  }
+
+  .access-card {
+    border: 1px solid var(--rule);
+    padding: 32px 28px;
+    position: relative;
+  }
+
+  .access-icon {
+    font-size: 28px;
+    margin-bottom: 16px;
+  }
+
+  .access-title {
+    font-family: 'Playfair Display', serif;
+    font-size: 18px;
+    margin-bottom: 10px;
+    color: var(--ink);
+  }
+
+  .access-body {
+    font-size: 13px;
+    color: var(--muted);
+    line-height: 1.7;
+  }
+
+  /* INTELLIGENCE */
+  .intel-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 2px;
+    margin-top: 56px;
+    background: var(--ink);
+  }
+
+  .intel-card {
+    background: var(--ink);
+    padding: 48px 40px;
+    color: #f5f2ed;
+  }
+
+  .intel-card-light {
+    background: #161410;
+  }
+
+  .intel-metric {
+    font-family: 'Playfair Display', serif;
+    font-size: 52px;
+    color: var(--gold-light);
+    line-height: 1;
+    margin-bottom: 8px;
+  }
+
+  .intel-label {
+    font-family: 'DM Mono', monospace;
+    font-size: 11px;
+    letter-spacing: 3px;
+    color: #aaaaaa;
+    text-transform: uppercase;
+    margin-bottom: 16px;
+  }
+
+  .intel-body {
+    font-size: 14px;
+    color: #cccccc;
+    line-height: 1.7;
+    max-width: 320px;
+  }
+
+  /* CTA */
+  .cta-section {
+    background: var(--ink);
+    padding: 96px 48px;
+    text-align: center;
+    position: relative;
+    overflow: hidden;
+  }
+
+  .cta-bg {
+    position: absolute;
+    inset: 0;
+    background: radial-gradient(ellipse 60% 80% at 50% 50%, #1e1608, transparent);
+  }
+
+  .cta-inner {
+    position: relative;
+    z-index: 2;
+    max-width: 600px;
+    margin: 0 auto;
+  }
+
+  .cta-title {
+    font-family: 'Playfair Display', serif;
+    font-size: clamp(32px, 5vw, 56px);
+    color: #f5f2ed;
+    line-height: 1.1;
+    margin-bottom: 20px;
+  }
+
+  .cta-title em { font-style: italic; color: var(--gold-light); }
+
+  .cta-body {
+    font-size: 16px;
+    color: #bbbbbb;
+    margin-bottom: 48px;
+    line-height: 1.7;
+  }
+
+  .cta-divider {
+    width: 1px;
+    height: 60px;
+    background: linear-gradient(to bottom, var(--gold), transparent);
+    margin: 0 auto 32px;
+  }
+
+  .cta-tagline {
+    font-family: 'Playfair Display', serif;
+    font-size: 18px;
+    font-style: italic;
+    color: var(--gold-light);
+  }
+
+  /* FOOTER */
+  footer {
+    background: #080808;
+    padding: 28px 48px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    border-top: 1px solid #1a1a1a;
+  }
+
+  .footer-mark {
+    font-family: 'DM Mono', monospace;
+    font-size: 10px;
+    letter-spacing: 3px;
+    color: #333;
+    text-transform: uppercase;
+  }
+
+  .footer-note {
+    font-family: 'DM Mono', monospace;
+    font-size: 10px;
+    color: #2a2a2a;
+    letter-spacing: 1px;
+  }
+
+  /* ANIMATIONS */
+  @keyframes fadeUp {
+    from { opacity: 0; transform: translateY(20px); }
+    to { opacity: 1; transform: translateY(0); }
+  }
+
+  /* RESPONSIVE */
+  @media (max-width: 700px) {
+    .hero-top, .hero-body, .hero-bottom { padding: 24px; }
+    section { padding: 64px 24px; }
+    hr.divider { margin: 0 24px; }
+    .hero-bottom { flex-wrap: wrap; gap: 24px; }
+    .intel-grid { grid-template-columns: 1fr; }
+    .process-step { grid-template-columns: 48px 1fr; gap: 16px; }
+    .step-num { font-size: 32px; }
+    footer { flex-direction: column; gap: 12px; text-align: center; }
+    .cta-section { padding: 64px 24px; }
+  }
+</style>
+</head>
+<body>
+
+<!-- HERO -->
+<div class="hero">
+  <div class="hero-bg"></div>
+  <div class="hero-grain"></div>
+
+  <div class="hero-top">
+    <div class="wordmark">Lipitrex · Content Intelligence System</div>
+    <div class="hero-badge">Built for Lipitrex · 2025</div>
+  </div>
+
+  <div class="hero-body">
+    <div class="hero-eyebrow">Purpose-built for Lipitrex Water Pills</div>
+    <h1 class="hero-title">
+      The right message.<br>
+      The right person.<br>
+      <em>Every day.</em>
+    </h1>
+    <p class="hero-sub">
+      A research-driven content and attribution system that finds Lipitrex buyers on TikTok, speaks directly to what they're feeling, and tracks the path from scroll to Amazon sale — automatically.
+    </p>
+  </div>
+
+  <div class="hero-bottom">
+    <div class="hero-stat">
+      <div class="hero-stat-num">5</div>
+      <div class="hero-stat-label">Buyer Profiles</div>
+    </div>
+    <div class="hero-stat">
+      <div class="hero-stat-num">5</div>
+      <div class="hero-stat-label">Post Formats</div>
+    </div>
+    <div class="hero-stat">
+      <div class="hero-stat-num">25</div>
+      <div class="hero-stat-label">Posts Per Week</div>
+    </div>
+    <div class="hero-stat">
+      <div class="hero-stat-num">0</div>
+      <div class="hero-stat-label">Guesswork</div>
+    </div>
+  </div>
+</div>
+
+<!-- WHO WE'RE REACHING -->
+<section>
+  <div class="section-rule"></div>
+  <div class="section-label">The Audience</div>
+  <h2 class="section-title">Five profiles.<br><em>Millions of people.</em></h2>
+  <p class="section-body">
+    Most brands post and hope. This system targets five clinically-identified populations who are actively searching for relief — each with distinct pain points, distinct language, and distinct reasons to buy. Every post speaks to one of them directly.
+  </p>
+</section>
+
+<div style="max-width:1100px;margin:0 auto;padding:0 48px;">
+  <div class="personas-grid">
+
+    <div class="persona-card">
+      <div class="persona-num">01</div>
+      <div class="persona-name">The Golden Chapter</div>
+      <div class="persona-tag">Adults 55+ · Venous Insufficiency</div>
+      <div class="persona-stat">19–20% of Americans over 50 experience chronic peripheral edema — the single largest affected population.</div>
+      <ul class="pain-list">
+        <li>Shoes fit in the morning, won't fit by afternoon</li>
+        <li>Legs that feel heavy and exhausting by midday</li>
+        <li>Medical advice that amounts to "just elevate your feet"</li>
+      </ul>
+    </div>
+
+    <div class="persona-card">
+      <div class="persona-num">02</div>
+      <div class="persona-name">The Turning Point</div>
+      <div class="persona-tag">Weight-Related Swelling</div>
+      <div class="persona-stat">Excess weight compresses veins and is a primary driver of venous insufficiency — one of the most supplement-receptive demographics online.</div>
+      <ul class="pain-list">
+        <li>Socks and shoes leaving visible marks by end of day</li>
+        <li>Swelling that discourages movement — worsening the cycle</li>
+        <li>Skepticism built from products that didn't deliver</li>
+      </ul>
+    </div>
+
+    <div class="persona-card">
+      <div class="persona-num">03</div>
+      <div class="persona-name">The New Chapter</div>
+      <div class="persona-tag">Pregnancy · Hormonal Cycles</div>
+      <div class="persona-stat">80% of pregnant women experience edema. Hormonal swelling affects millions more monthly — a high-intent audience actively seeking safe, natural support.</div>
+      <ul class="pain-list">
+        <li>Puffy feet and ankles that make daily movement difficult</li>
+        <li>Monthly swelling cycles they can predict but can't stop</li>
+        <li>Skepticism toward anything pharmaceutical</li>
+      </ul>
+    </div>
+
+    <div class="persona-card">
+      <div class="persona-num">04</div>
+      <div class="persona-name">The On-Your-Feet Crew</div>
+      <div class="persona-tag">Nurses · Teachers · Retail · Desk Workers</div>
+      <div class="persona-stat">Prolonged standing and sitting are among the most consistent clinical triggers for peripheral edema — a massive, underserved TikTok audience.</div>
+      <ul class="pain-list">
+        <li>Dead-leg feeling after a long shift</li>
+        <li>Travel and desk days leaving feet swollen</li>
+        <li>Too busy for complex routines — want something simple</li>
+      </ul>
+    </div>
+
+    <div class="persona-card">
+      <div class="persona-num">05</div>
+      <div class="persona-name">Side Effect Survivors</div>
+      <div class="persona-tag">Medication-Induced Swelling</div>
+      <div class="persona-stat">Amlodipine, prednisone, NSAIDs, and hormonal drugs all commonly cause fluid retention. Millions feel trapped between needing their medication and hating the side effects.</div>
+      <ul class="pain-list">
+        <li>Need the medication — but hate what it does</li>
+        <li>Swelling that appeared exactly when the prescription started</li>
+        <li>Providers who acknowledge it but offer no solution</li>
+      </ul>
+    </div>
+
+  </div>
+</div>
+
+<hr class="divider" style="margin-top:64px;">
+
+<!-- PRODUCT SPOTLIGHT -->
+<section>
+  <div class="section-rule"></div>
+  <div class="section-label">The Product</div>
+  <h2 class="section-title">What we're<br><em>putting in front of them.</em></h2>
+  <p class="section-body">
+    Lipitrex isn't a generic water pill. It's a botanical blend with a story — and every ingredient in it maps directly to something the five buyer profiles are already searching for.
+  </p>
+
+  <div style="margin-top:56px;display:grid;grid-template-columns:1fr 1fr;gap:2px;background:var(--rule);">
+
+    <div style="background:var(--paper);padding:40px 36px;grid-column:1/-1;border-bottom:2px solid var(--gold);">
+      <div style="font-family:'DM Mono',monospace;font-size:10px;letter-spacing:3px;color:#6b4e0a;text-transform:uppercase;margin-bottom:12px;">The Formula</div>
+      <div style="font-family:'Playfair Display',serif;font-size:24px;margin-bottom:16px;">Lipitrex Water Pills</div>
+      <div style="font-size:14px;color:var(--muted);line-height:1.8;max-width:680px;">
+        A synergistic botanical blend formulated for swollen feet, ankles, and legs from water retention and edema. GMP certified, FDA registered facility. Made in the USA. Available on Amazon with Subscribe & Save.
+      </div>
+    </div>
+
+    <div style="background:var(--paper);padding:36px;">
+      <div style="font-family:'DM Mono',monospace;font-size:10px;letter-spacing:3px;color:#6b4e0a;text-transform:uppercase;margin-bottom:20px;">Key Ingredients</div>
+      <div style="display:flex;flex-direction:column;gap:14px;">
+        <div>
+          <div style="font-family:'Playfair Display',serif;font-size:16px;margin-bottom:3px;">Dandelion Leaf</div>
+          <div style="font-size:12px;color:#4a4540;">Traditional diuretic herb — supports natural fluid balance and hydration wellness. One of the most recognized botanicals in the edema supplement category.</div>
+        </div>
+        <div>
+          <div style="font-family:'Playfair Display',serif;font-size:16px;margin-bottom:3px;">Horse Chestnut Seed</div>
+          <div style="font-size:12px;color:#4a4540;">Traditionally used to support healthy vein tone and circulation — directly relevant to venous insufficiency, the #1 cause of edema in adults 50+.</div>
+        </div>
+        <div>
+          <div style="font-family:'Playfair Display',serif;font-size:16px;margin-bottom:3px;">Ginkgo Biloba</div>
+          <div style="font-size:12px;color:#4a4540;">Supports healthy circulation and cognitive function — a differentiator that opens content angles beyond just swelling relief.</div>
+        </div>
+        <div>
+          <div style="font-family:'Playfair Display',serif;font-size:16px;margin-bottom:3px;">Uva Ursi + Buchu Leaf</div>
+          <div style="font-size:12px;color:#4a4540;">Time-trusted botanicals traditionally used to support urinary and fluid balance — reinforces the natural, plant-based story.</div>
+        </div>
+      </div>
+    </div>
+
+    <div style="background:var(--cream);padding:36px;">
+      <div style="font-family:'DM Mono',monospace;font-size:10px;letter-spacing:3px;color:#6b4e0a;text-transform:uppercase;margin-bottom:20px;">Content Angles by Ingredient</div>
+      <div style="display:flex;flex-direction:column;gap:12px;">
+        <div style="padding:12px 16px;background:white;border-left:2px solid #8a6a10;">
+          <div style="font-size:12px;color:var(--ink);font-weight:500;margin-bottom:3px;">🌿 "Five plants, one formula"</div>
+          <div style="font-size:11px;color:#4a4540;">Lead with the botanical story — resonates with Personas 3 & 5 who want natural over pharmaceutical</div>
+        </div>
+        <div style="padding:12px 16px;background:white;border-left:2px solid #8a6a10;">
+          <div style="font-size:12px;color:var(--ink);font-weight:500;margin-bottom:3px;">🇺🇸 "Made in the USA, GMP certified"</div>
+          <div style="font-size:11px;color:#4a4540;">Trust signal for Persona 1 (elderly) who are most skeptical of supplement quality</div>
+        </div>
+        <div style="padding:12px 16px;background:white;border-left:2px solid #8a6a10;">
+          <div style="font-size:12px;color:var(--ink);font-weight:500;margin-bottom:3px;">🧠 "Plus Ginkgo — for the fog too"</div>
+          <div style="font-size:11px;color:#4a4540;">Differentiator angle — nobody else is talking about cognitive support alongside swelling relief</div>
+        </div>
+        <div style="padding:12px 16px;background:white;border-left:2px solid #8a6a10;">
+          <div style="font-size:12px;color:var(--ink);font-weight:500;margin-bottom:3px;">🔄 Subscribe & Save on Amazon</div>
+          <div style="font-size:11px;color:#4a4540;">Recurring revenue angle — content CTAs can drive Subscribe & Save adoption, not just one-time purchases</div>
+        </div>
+      </div>
+    </div>
+
+  </div>
+</section>
+
+<hr class="divider">
+<section>
+  <div class="section-rule"></div>
+  <div class="section-label">The System</div>
+  <h2 class="section-title">25 posts a week.<br><em>Zero guesswork.</em></h2>
+  <p class="section-body">
+    Every day, all five buyer profiles get a post — each one using that day's assigned format. By end of week, you know which format resonated with which buyer. By end of month, you have a performance matrix that tells you exactly where to put your energy and your ad spend.
+  </p>
+
+  <!-- Matrix visual -->
+  <div style="margin-top:56px;overflow-x:auto;">
+    <table style="width:100%;border-collapse:collapse;font-size:13px;">
+      <thead>
+        <tr>
+          <th style="padding:14px 16px;text-align:left;font-family:'DM Mono',monospace;font-size:10px;letter-spacing:2px;color:#3a3530;font-weight:400;border-bottom:2px solid var(--ink);text-transform:uppercase;">Buyer Profile</th>
+          <th style="padding:14px 12px;text-align:center;font-family:'DM Mono',monospace;font-size:10px;letter-spacing:1px;color:#3a3530;font-weight:400;border-bottom:2px solid var(--ink);text-transform:uppercase;">Mon<br>📚 Edu</th>
+          <th style="padding:14px 12px;text-align:center;font-family:'DM Mono',monospace;font-size:10px;letter-spacing:1px;color:#3a3530;font-weight:400;border-bottom:2px solid var(--ink);text-transform:uppercase;">Tue<br>🎤 Story</th>
+          <th style="padding:14px 12px;text-align:center;font-family:'DM Mono',monospace;font-size:10px;letter-spacing:1px;color:#3a3530;font-weight:400;border-bottom:2px solid var(--ink);text-transform:uppercase;">Wed<br>⚡ Hook</th>
+          <th style="padding:14px 12px;text-align:center;font-family:'DM Mono',monospace;font-size:10px;letter-spacing:1px;color:#3a3530;font-weight:400;border-bottom:2px solid var(--ink);text-transform:uppercase;">Thu<br>🎥 POV</th>
+          <th style="padding:14px 12px;text-align:center;font-family:'DM Mono',monospace;font-size:10px;letter-spacing:1px;color:#3a3530;font-weight:400;border-bottom:2px solid var(--ink);text-transform:uppercase;">Fri<br>🎵 Trend</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr style="border-bottom:1px solid var(--rule);">
+          <td style="padding:14px 16px;font-family:'Playfair Display',serif;font-size:14px;">☀️ The Golden Chapter</td>
+          <td style="padding:14px 12px;text-align:center;background:#faf8f4;"><div style="width:24px;height:24px;border:1px solid var(--gold);border-radius:50%;margin:0 auto;"></div></td>
+          <td style="padding:14px 12px;text-align:center;background:#faf8f4;"><div style="width:24px;height:24px;border:1px solid var(--gold);border-radius:50%;margin:0 auto;"></div></td>
+          <td style="padding:14px 12px;text-align:center;background:#faf8f4;"><div style="width:24px;height:24px;border:1px solid var(--gold);border-radius:50%;margin:0 auto;"></div></td>
+          <td style="padding:14px 12px;text-align:center;background:#faf8f4;"><div style="width:24px;height:24px;border:1px solid var(--gold);border-radius:50%;margin:0 auto;"></div></td>
+          <td style="padding:14px 12px;text-align:center;background:#faf8f4;"><div style="width:24px;height:24px;border:1px solid var(--gold);border-radius:50%;margin:0 auto;"></div></td>
+        </tr>
+        <tr style="border-bottom:1px solid var(--rule);">
+          <td style="padding:14px 16px;font-family:'Playfair Display',serif;font-size:14px;">🌱 The Turning Point</td>
+          <td style="padding:14px 12px;text-align:center;"><div style="width:24px;height:24px;border:1px solid var(--gold);border-radius:50%;margin:0 auto;"></div></td>
+          <td style="padding:14px 12px;text-align:center;"><div style="width:24px;height:24px;border:1px solid var(--gold);border-radius:50%;margin:0 auto;"></div></td>
+          <td style="padding:14px 12px;text-align:center;"><div style="width:24px;height:24px;border:1px solid var(--gold);border-radius:50%;margin:0 auto;"></div></td>
+          <td style="padding:14px 12px;text-align:center;"><div style="width:24px;height:24px;border:1px solid var(--gold);border-radius:50%;margin:0 auto;"></div></td>
+          <td style="padding:14px 12px;text-align:center;"><div style="width:24px;height:24px;border:1px solid var(--gold);border-radius:50%;margin:0 auto;"></div></td>
+        </tr>
+        <tr style="border-bottom:1px solid var(--rule);">
+          <td style="padding:14px 16px;font-family:'Playfair Display',serif;font-size:14px;">🌸 The New Chapter</td>
+          <td style="padding:14px 12px;text-align:center;background:#faf8f4;"><div style="width:24px;height:24px;border:1px solid var(--gold);border-radius:50%;margin:0 auto;"></div></td>
+          <td style="padding:14px 12px;text-align:center;background:#faf8f4;"><div style="width:24px;height:24px;border:1px solid var(--gold);border-radius:50%;margin:0 auto;"></div></td>
+          <td style="padding:14px 12px;text-align:center;background:#faf8f4;"><div style="width:24px;height:24px;border:1px solid var(--gold);border-radius:50%;margin:0 auto;"></div></td>
+          <td style="padding:14px 12px;text-align:center;background:#faf8f4;"><div style="width:24px;height:24px;border:1px solid var(--gold);border-radius:50%;margin:0 auto;"></div></td>
+          <td style="padding:14px 12px;text-align:center;background:#faf8f4;"><div style="width:24px;height:24px;border:1px solid var(--gold);border-radius:50%;margin:0 auto;"></div></td>
+        </tr>
+        <tr style="border-bottom:1px solid var(--rule);">
+          <td style="padding:14px 16px;font-family:'Playfair Display',serif;font-size:14px;">👟 On-Your-Feet Crew</td>
+          <td style="padding:14px 12px;text-align:center;"><div style="width:24px;height:24px;border:1px solid var(--gold);border-radius:50%;margin:0 auto;"></div></td>
+          <td style="padding:14px 12px;text-align:center;"><div style="width:24px;height:24px;border:1px solid var(--gold);border-radius:50%;margin:0 auto;"></div></td>
+          <td style="padding:14px 12px;text-align:center;"><div style="width:24px;height:24px;border:1px solid var(--gold);border-radius:50%;margin:0 auto;"></div></td>
+          <td style="padding:14px 12px;text-align:center;"><div style="width:24px;height:24px;border:1px solid var(--gold);border-radius:50%;margin:0 auto;"></div></td>
+          <td style="padding:14px 12px;text-align:center;"><div style="width:24px;height:24px;border:1px solid var(--gold);border-radius:50%;margin:0 auto;"></div></td>
+        </tr>
+        <tr>
+          <td style="padding:14px 16px;font-family:'Playfair Display',serif;font-size:14px;">💊 Side Effect Survivors</td>
+          <td style="padding:14px 12px;text-align:center;background:#faf8f4;"><div style="width:24px;height:24px;border:1px solid var(--gold);border-radius:50%;margin:0 auto;"></div></td>
+          <td style="padding:14px 12px;text-align:center;background:#faf8f4;"><div style="width:24px;height:24px;border:1px solid var(--gold);border-radius:50%;margin:0 auto;"></div></td>
+          <td style="padding:14px 12px;text-align:center;background:#faf8f4;"><div style="width:24px;height:24px;border:1px solid var(--gold);border-radius:50%;margin:0 auto;"></div></td>
+          <td style="padding:14px 12px;text-align:center;background:#faf8f4;"><div style="width:24px;height:24px;border:1px solid var(--gold);border-radius:50%;margin:0 auto;"></div></td>
+          <td style="padding:14px 12px;text-align:center;background:#faf8f4;"><div style="width:24px;height:24px;border:1px solid var(--gold);border-radius:50%;margin:0 auto;"></div></td>
+        </tr>
+      </tbody>
+    </table>
+    <div style="margin-top:12px;font-family:'DM Mono',monospace;font-size:10px;color:var(--muted);letter-spacing:1px;">
+      Every cell = one post. Every row = one buyer. Every column = one format. 25 data points per week.
+    </div>
+  </div>
+
+  <div class="process-steps" style="margin-top:64px;">
+
+    <div class="process-step">
+      <div class="step-num">1</div>
+      <div class="step-content">
+        <div class="step-title">5 Posts Generated Each Morning</div>
+        <div class="step-body">Each morning the system produces five complete post packages — one per buyer profile, all using that day's format. Each includes a hook, full video script, AI video direction, caption, and hashtag set. Ready to produce and post within minutes.</div>
+        <div class="step-tag">AI-Powered · FTC Compliant · 5 Posts Daily</div>
+      </div>
+    </div>
+
+    <div class="process-step">
+      <div class="step-num">2</div>
+      <div class="step-content">
+        <div class="step-title">Videos Produced & Posted</div>
+        <div class="step-body">Every script is formatted specifically for AI video generation — scene descriptions, presenter direction, text overlay timing, and audio mood. Five posts go live each day at peak audience windows, each speaking directly to a different buyer's situation.</div>
+        <div class="step-tag">AI Video Ready · 5 Formats Weekly</div>
+      </div>
+    </div>
+
+    <div class="process-step">
+      <div class="step-num">3</div>
+      <div class="step-content">
+        <div class="step-title">Performance Captured Daily</div>
+        <div class="step-body">Every post's performance is tracked — views, save rate, watch time, completion rate — organized by buyer profile and format. By end of each day you see which buyer responded. By end of each week you see which format drove it. That's the matrix filling in.</div>
+        <div class="step-tag">Daily Data · Per Persona · Per Format</div>
+      </div>
+    </div>
+
+    <div class="process-step">
+      <div class="step-num">4</div>
+      <div class="step-content">
+        <div class="step-title">Amazon Revenue Attribution</div>
+        <div class="step-body">A proprietary attribution layer ties TikTok traffic directly to Amazon purchases. Every click from your profile is tracked through to the sale — so you know which buyer profile and which content format is driving real revenue, not just engagement.</div>
+        <div class="step-tag">Revenue Attribution · Amazon Connected</div>
+      </div>
+    </div>
+
+    <div class="process-step">
+      <div class="step-num">5</div>
+      <div class="step-content">
+        <div class="step-title">The Matrix Tells You Where to Scale</div>
+        <div class="step-body">After four weeks, the 25-cell performance matrix shows you exactly which buyer × format combinations convert. You take the top performers and scale them — with paid, with more content, with influencer partnerships. Every decision is backed by your own data, not industry assumptions.</div>
+        <div class="step-tag">Self-Optimizing · Scale-Ready</div>
+      </div>
+    </div>
+
+  </div>
+</section>
+
+<hr class="divider">
+
+<!-- HOW YOU ACCESS IT -->
+<section>
+  <div class="section-rule"></div>
+  <div class="section-label">Your Experience</div>
+  <h2 class="section-title">Everything in<br><em>one place.</em></h2>
+  <p class="section-body">
+    Designed for operators, not analysts. You open one screen. Everything you need is there.
+  </p>
+
+  <div class="access-grid">
+
+    <div class="access-card">
+      <div class="access-icon">🎬</div>
+      <div class="access-title">5 Posts Generated Daily</div>
+      <div class="access-body">Each morning the system produces five complete post packages — one per buyer profile, all in that day's format. Scripts, video direction, captions, hashtags. Copy, generate, post. Five live posts before noon.</div>
+    </div>
+
+    <div class="access-card">
+      <div class="access-icon">📊</div>
+      <div class="access-title">The Performance Matrix</div>
+      <div class="access-body">A live 25-cell grid showing every persona × format combination and its save rate. At a glance you see which combinations are winning, which need work, and where to concentrate next week's energy.</div>
+    </div>
+
+    <div class="access-card">
+      <div class="access-icon">🛒</div>
+      <div class="access-title">Amazon Revenue View</div>
+      <div class="access-body">The dashboard shows clicks from TikTok through to Amazon purchases. You'll know which content drove sales, not just which content got views. Real revenue data, attributed to real posts.</div>
+    </div>
+
+    <div class="access-card">
+      <div class="access-icon">📅</div>
+      <div class="access-title">Format Calendar</div>
+      <div class="access-body">Monday is Educational. Tuesday is Testimonial. Wednesday Hook & Reveal. Thursday POV. Friday Trend. The format rotates automatically — all five buyer profiles post in that format each day. No planning, no decisions.</div>
+    </div>
+
+    <div class="access-card">
+      <div class="access-icon">🧪</div>
+      <div class="access-title">Built-In A/B Testing</div>
+      <div class="access-body">Running all five formats against all five personas every week is a continuous controlled experiment. After four weeks the matrix reveals your top three buyer × format combinations. That's where you scale — paid ads, influencers, more content volume.</div>
+    </div>
+
+    <div class="access-card">
+      <div class="access-icon">✅</div>
+      <div class="access-title">Compliance Built In</div>
+      <div class="access-body">Every piece of content is checked against FTC supplement advertising guidelines and TikTok Community Guidelines before it reaches you. Safe language, right claims, every time.</div>
+    </div>
+
+  </div>
+</section>
+
+<hr class="divider">
+
+<!-- INTELLIGENCE / DECISION MAKING -->
+<div style="max-width:1100px;margin:0 auto;padding:64px 48px 96px;">
+  <div class="section-rule"></div>
+  <div class="section-label">Business Intelligence</div>
+  <h2 class="section-title" style="margin-bottom:48px;">Decisions backed<br><em>by evidence.</em></h2>
+
+  <div class="intel-grid">
+
+    <div class="intel-card">
+      <div class="intel-metric">25 Posts</div>
+      <div class="intel-label">Every week, every combination</div>
+      <div class="intel-body">Five buyer profiles. Five content formats. Every combination gets posted every week. That's not volume for volume's sake — it's a controlled experiment running continuously, generating data that tells you exactly what to scale.</div>
+    </div>
+
+    <div class="intel-card intel-card-light">
+      <div class="intel-metric">The Matrix</div>
+      <div class="intel-label">Persona × Format performance</div>
+      <div class="intel-body">Does the 55+ buyer respond to Educational or Testimonial? Does the nurse convert from POV or Hook & Reveal? The matrix answers both after week one and gets sharper every week after. Decisions stop being opinions.</div>
+    </div>
+
+    <div class="intel-card intel-card-light">
+      <div class="intel-metric">Save Rate</div>
+      <div class="intel-label">The metric that predicts scale</div>
+      <div class="intel-body">Views tell you reach. Save rate tells you resonance — and it's TikTok's strongest signal to show your content to more people like them. The system tracks save rate per persona per format. That's the number that tells you what to run as paid.</div>
+    </div>
+
+    <div class="intel-card">
+      <div class="intel-metric">Full Funnel</div>
+      <div class="intel-label">View → Click → Buy</div>
+      <div class="intel-body">TikTok views are the top. Amazon purchases are the bottom. The attribution layer shows you both — and what happens in between. Profile visits, bio link clicks, and attributed revenue. You'll know your conversion rate from content format to sale.</div>
+    </div>
+
+  </div>
+</div>
+
+<!-- CTA -->
+<div class="cta-section">
+  <div class="cta-bg"></div>
+  <div class="cta-inner">
+    <h2 class="cta-title">Your buyers are already<br>on TikTok. <em>Looking for Lipitrex.</em></h2>
+    <p class="cta-body">
+      Every day without this system is a day someone searches "swollen ankles natural remedy" and lands on a competitor. The five people who need Lipitrex most are scrolling right now.
+    </p>
+    <div class="cta-divider"></div>
+    <div class="cta-tagline">The right message. The right person. Every day.</div>
+  </div>
+</div>
+
+<!-- FOOTER -->
+<footer>
+  <div class="footer-mark">Lipitrex · Content Intelligence System · 2025</div>
+  <div class="footer-note">Proprietary · Research-Backed · FTC & Amazon Compliant</div>
+</footer>
+
+</body>
+</html>
