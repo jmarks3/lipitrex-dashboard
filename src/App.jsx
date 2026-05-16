@@ -322,7 +322,7 @@ export default function LipitrexDashboard() {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
-          model: "anthropic/claude-sonnet-4-20250514",
+          model: "claude-sonnet-4-20250514",
           max_tokens: 1000,
           system: SYSTEM_PROMPT(persona, format, type, week),
           messages: [{
