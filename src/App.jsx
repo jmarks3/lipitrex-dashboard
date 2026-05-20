@@ -263,7 +263,7 @@ export default function LipitrexDashboard() {
   const [contentLog, setContentLog] = useState([]);
   const [idCounter, setIdCounter] = useState(1);
   const [heygenKey, setHeygenKey] = useState("");
-  const [heygenConnected, setHeygenConnected] = useState(false);
+  const [heygenConnected, setHeygenConnected] = useState(true);
   const [videoMetrics, setVideoMetrics] = useState(() => {
     const m = {};
     VIDEO_FORMATS.forEach(f => { m[f.id] = {}; PERSONAS.forEach(p => { m[f.id][p.id] = { views: "", saves: "", comments: "", completion: "" }; }); });
