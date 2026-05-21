@@ -329,7 +329,7 @@ export default function LipitrexDashboard() {
     const newId = `LT-${type === 'video' ? 'V' : 'C'}-${num}-P${persona.id}-${dateStr}`;
 
     try {
-      const res = await fetch("/.netlify/functions/claude", {
+      const res = await fetch("https://lipitrex-dashboard.vercel.app/api/claude", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
