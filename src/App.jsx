@@ -585,7 +585,7 @@ Make it specific, vivid, and warm. The viewer should feel understood before they
                         )}
                         {result && !isLoading && (
                           <>
-                            {heygenConnected && (
+                            {heygenConnected && genType === "video" && (
                               <Btn variant="secondary" style={{ fontSize: "12px", padding: "6px 12px",
                                 background: heygenStatus[`heygen_${p.id}`] === "success" ? T.greenLight :
                                   heygenStatus[`heygen_${p.id}`] === "error" ? T.redLight : undefined }}
