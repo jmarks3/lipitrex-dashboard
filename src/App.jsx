@@ -162,7 +162,7 @@ List all attribute tags: content type, persona, format, hook type, pain point, i
 One line. Stops the scroll. ${type === 'video' ? `Spoken aloud in first 2 seconds. Target length: ${persona.length}` : 'Bold text on slide 1.'}
 
 ## ${type === 'video' ? 'SCRIPT' : 'SLIDE BREAKDOWN'}
-${type === 'video' ? `Full script timed to ${persona.length}. Format: [HOOK 0-3s] [BODY] [CTA — soft/medium/hard options]` : 'Every slide: number, headline text, body text (1-2 sentences max), HeyGen visual direction'}
+${type === 'video' ? `Full script timed to ${persona.length}. Format: [HOOK 0-3s] [BODY] [CTA — soft/medium/hard options]` : '3 slides maximum. Every slide: number, headline text, body text (1-2 sentences max), HeyGen visual direction. Slide 1: hook. Slide 2: education/value. Slide 3: CTA with soft product mention.'}
 
 ## HEYGEN ${type === 'video' ? 'VIDEO' : 'IMAGE'} BRIEF
 ${type === 'video' ? 'Avatar selection (age, appearance, energy), scene, setting, wardrobe, delivery pace, b-roll, text overlay timing, audio mood' : 'Visual style, color palette, typography, slide layout, brand consistency for HeyGen image generation'}
