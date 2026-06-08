@@ -419,39 +419,50 @@ Make it specific, vivid, and warm. The viewer should feel understood before they
   };
 
   const sendToPostNitro = async (e, persona, result, genomeId) => {
-    e.stopPropagation();
-    const key = `postnitro_${persona.id}`;
-    setPostnitroStatus(prev => ({ ...prev, [key]: "sending" }));
+  e.stopPropagation();
+  const key = `postnitro_${persona.id}`;
+  setPostnitroStatus(prev => ({ ...prev, [key]: "sending" }));
 
-    const slideMatches = [...result.matchAll(/Slide\s+(\d+)[:\s]+([^\n]+)\n([^\n]+)/gi)];
-    const slides = slideMatches.length > 0
-      ? slideMatches.map((m, i) => ({
-          type: i === 0 ? "starting_slide" : i === slideMatches.length - 1 ? "ending_slide" : "body_slide",
-          heading: m[2]?.trim() || `Slide ${m[1]}`,
-          description: m[3]?.trim() || "",
-        }))
-      : [
-          { type: "starting_slide", heading: "Did you know?", description: result.split('\n').find(l => l.trim() && !l.startsWith('#'))?.slice(0, 100) || "" },
-          { type: "body_slide", heading: "Here's what helps", description: persona.angle },
-          { type: "ending_slide", heading: "Try Lipitrex", description: "Plant-based support for fluid balance. Link in bio." },
-        ];
+  // Parse slides from ### SLIDE N format
+  const slideBlocks = result.split(/###\s+SLIDE\s+\d+[^#]*/i).filter(s => s.trim());
+  
+  let slides = [];
+  if (slideBlocks.length >= 3) {
+    slides = slideBlocks.slice(0, 3).map((block, i) => {
+      const headlineMatch = block.match(/\*+"([^"*]+)"\*+|Headline Text[:\s]+\*?"?([^*\n"]+)"?\*?/i);
+      const bodyMatch = block.match(/Body Text[:\s]+([^\n#]+(?:\n(?!###|##)[^\n#]+)*)/i);
+      const heading = headlineMatch ? (headlineMatch[1] || headlineMatch[2] || "").trim() : "";
+      const description = bodyMatch ? bodyMatch[1].replace(/\*/g, "").trim() : "";
+      return {
+        type: i === 0 ? "starting_slide" : i === slideBlocks.length - 1 ? "ending_slide" : "body_slide",
+        heading: heading || `Slide ${i + 1}`,
+        description: description || persona.angle,
+      };
+    });
+  } else {
+    slides = [
+      { type: "starting_slide", heading: "My shoes fit at 9am. By 3pm, I couldn't get them off.", description: "If your feet and legs swell through the day — you already know." },
+      { type: "body_slide", heading: "Horse Chestnut. Look it up.", description: persona.angle },
+      { type: "ending_slide", heading: "Try Lipitrex", description: "Plant-based support for fluid balance. Link in bio." },
+    ];
+  }
 
-    try {
-      const res = await fetch("https://lipitrex-dashboard.vercel.app/api/postnitro", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ slides }),
-      });
-      const data = await res.json();
-      if (data.data?.status === "COMPLETED" || data.success) {
-        setPostnitroStatus(prev => ({ ...prev, [key]: "success" }));
-      } else {
-        setPostnitroStatus(prev => ({ ...prev, [key]: "error" }));
-      }
-    } catch (err) {
+  try {
+    const res = await fetch("https://lipitrex-dashboard.vercel.app/api/postnitro", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ slides }),
+    });
+    const data = await res.json();
+    if (data.data?.status === "COMPLETED" || data.success) {
+      setPostnitroStatus(prev => ({ ...prev, [key]: "success" }));
+    } else {
       setPostnitroStatus(prev => ({ ...prev, [key]: "error" }));
     }
-  };
+  } catch (err) {
+    setPostnitroStatus(prev => ({ ...prev, [key]: "error" }));
+  }
+};
 
   const updateMetric = (type, fId, pId, field, val) => {
     if (type === "video") {
