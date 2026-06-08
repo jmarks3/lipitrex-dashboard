@@ -94,7 +94,6 @@ const CAROUSEL_FORMATS = [
   { id: "quiz", label: "Quiz / Did You Know", emoji: "🧠", day: "Fri", metric: "Comments", desc: "Interactive-feeling content drives saves and comments. One question per slide." },
 ];
 
-// Offset rotation — Week 1
 const VIDEO_ROTATION = {
   1: { 1: "edu", 2: "story", 3: "hook", 4: "pov", 5: "trend" },
   2: { 1: "story", 2: "hook", 3: "pov", 4: "trend", 5: "edu" },
@@ -264,6 +263,8 @@ export default function LipitrexDashboard() {
   const [idCounter, setIdCounter] = useState(1);
   const [heygenKey, setHeygenKey] = useState("");
   const [heygenConnected, setHeygenConnected] = useState(true);
+  const [heygenStatus, setHeygenStatus] = useState({});
+  const [postnitroStatus, setPostnitroStatus] = useState({});
   const [videoMetrics, setVideoMetrics] = useState(() => {
     const m = {};
     VIDEO_FORMATS.forEach(f => { m[f.id] = {}; PERSONAS.forEach(p => { m[f.id][p.id] = { views: "", saves: "", comments: "", completion: "", hold_2s: "", view_6s: "" }; }); });
@@ -278,8 +279,6 @@ export default function LipitrexDashboard() {
   const [trackFormat, setTrackFormat] = useState(VIDEO_FORMATS[0].id);
   const [genomeFilter, setGenomeFilter] = useState("all");
 
-
-  // Date range for current offset week
   const getOffsetDateRange = (offset) => {
     const weekStart = new Date(ANCHOR);
     weekStart.setDate(ANCHOR.getDate() + ((offset - 1 + Math.floor((today - ANCHOR) / (7 * 24 * 60 * 60 * 1000)) - ((Math.floor((today - ANCHOR) / (7 * 24 * 60 * 60 * 1000))) % 5)) * 7));
@@ -314,7 +313,6 @@ export default function LipitrexDashboard() {
     const view6 = parseFloat(d.view_6s) || 0;
     const save = d.views && d.saves ? (parseFloat(d.saves) / parseFloat(d.views)) * 100 : 0;
     if (!hold && !view6 && !save) return null;
-    // Weighted signal: 2s hold (30%) + 6s view (40%) + save rate (30%)
     return ((hold * 0.3) + (view6 * 0.4) + (save * 0.3)).toFixed(1);
   };
 
@@ -358,7 +356,6 @@ Make it specific, vivid, and warm. The viewer should feel understood before they
       const text = data.content?.map(b => b.text || "").join("") || "Error generating content.";
       setResults(prev => ({ ...prev, [key]: text }));
 
-      // Add to content log
       const entry = {
         id: newId,
         persona: persona.name,
@@ -398,8 +395,6 @@ Make it specific, vivid, and warm. The viewer should feel understood before they
     }
   };
 
-  const [heygenStatus, setHeygenStatus] = useState({});
-
   const sendToHeyGen = async (e, persona, result, genomeId) => {
     e.stopPropagation();
     const key = `heygen_${persona.id}`;
@@ -420,6 +415,41 @@ Make it specific, vivid, and warm. The viewer should feel understood before they
       }
     } catch (err) {
       setHeygenStatus(prev => ({ ...prev, [key]: "error" }));
+    }
+  };
+
+  const sendToPostNitro = async (e, persona, result, genomeId) => {
+    e.stopPropagation();
+    const key = `postnitro_${persona.id}`;
+    setPostnitroStatus(prev => ({ ...prev, [key]: "sending" }));
+
+    const slideMatches = [...result.matchAll(/Slide\s+(\d+)[:\s]+([^\n]+)\n([^\n]+)/gi)];
+    const slides = slideMatches.length > 0
+      ? slideMatches.map((m, i) => ({
+          type: i === 0 ? "starting_slide" : i === slideMatches.length - 1 ? "ending_slide" : "middle_slide",
+          heading: m[2]?.trim() || `Slide ${m[1]}`,
+          description: m[3]?.trim() || "",
+        }))
+      : [
+          { type: "starting_slide", heading: "Did you know?", description: result.split('\n').find(l => l.trim() && !l.startsWith('#'))?.slice(0, 100) || "" },
+          { type: "middle_slide", heading: "Here's what helps", description: persona.angle },
+          { type: "ending_slide", heading: "Try Lipitrex", description: "Plant-based support for fluid balance. Link in bio." },
+        ];
+
+    try {
+      const res = await fetch("https://lipitrex-dashboard.vercel.app/api/postnitro", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ slides }),
+      });
+      const data = await res.json();
+      if (data.status === "COMPLETED" || data.requestId) {
+        setPostnitroStatus(prev => ({ ...prev, [key]: "success" }));
+      } else {
+        setPostnitroStatus(prev => ({ ...prev, [key]: "error" }));
+      }
+    } catch (err) {
+      setPostnitroStatus(prev => ({ ...prev, [key]: "error" }));
     }
   };
 
@@ -466,7 +496,6 @@ Make it specific, vivid, and warm. The viewer should feel understood before they
             </div>
           </div>
 
-          {/* NAV TABS */}
           <div style={{ display: "flex", gap: "4px", marginTop: "12px" }}>
             {TABS.map(t => (
               <button key={t.id} onClick={() => setTab(t.id)} style={{
@@ -502,7 +531,6 @@ Make it specific, vivid, and warm. The viewer should feel understood before they
               ))}
             </div>
 
-            {/* Type toggle + Generate All */}
             <Card style={{ marginBottom: "20px", padding: "16px" }}>
               <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", flexWrap: "wrap", gap: "12px" }}>
                 <div style={{ display: "flex", gap: "8px" }}>
@@ -522,7 +550,6 @@ Make it specific, vivid, and warm. The viewer should feel understood before they
               </div>
             </Card>
 
-            {/* HeyGen connection */}
             <Card style={{ marginBottom: "20px", padding: "16px", borderLeft: `3px solid ${heygenConnected ? T.green : T.gold}` }}>
               <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", flexWrap: "wrap", gap: "12px" }}>
                 <div style={{ display: "flex", alignItems: "center", gap: "10px" }}>
@@ -549,7 +576,6 @@ Make it specific, vivid, and warm. The viewer should feel understood before they
               </div>
             </Card>
 
-            {/* Persona cards */}
             <div style={{ display: "flex", flexDirection: "column", gap: "12px" }}>
               {PERSONAS.map(p => {
                 const format = getFormatForPersona(p.id, genType);
@@ -560,7 +586,6 @@ Make it specific, vivid, and warm. The viewer should feel understood before they
 
                 return (
                   <Card key={p.id} style={{ padding: 0, overflow: "hidden" }}>
-                    {/* Card header */}
                     <div style={{
                       display: "flex", alignItems: "center", justifyContent: "space-between",
                       padding: "16px 20px", borderBottom: result ? `1px solid ${T.border}` : "none",
@@ -586,14 +611,27 @@ Make it specific, vivid, and warm. The viewer should feel understood before they
                         {result && !isLoading && (
                           <>
                             {heygenConnected && genType === "video" && (
-                              <Btn variant="secondary" style={{ fontSize: "12px", padding: "6px 12px",
+                              <Btn variant="secondary" style={{
+                                fontSize: "12px", padding: "6px 12px",
                                 background: heygenStatus[`heygen_${p.id}`] === "success" ? T.greenLight :
-                                  heygenStatus[`heygen_${p.id}`] === "error" ? T.redLight : undefined }}
-                                onClick={e => sendToHeyGen(e, p, result, null)}>
+                                  heygenStatus[`heygen_${p.id}`] === "error" ? T.redLight : undefined,
+                              }} onClick={e => sendToHeyGen(e, p, result, null)}>
                                 {heygenStatus[`heygen_${p.id}`] === "sending" ? "Sending..." :
                                   heygenStatus[`heygen_${p.id}`] === "success" ? "✓ Sent to HeyGen" :
                                   heygenStatus[`heygen_${p.id}`] === "error" ? "Error — Retry" :
                                   "Send to HeyGen →"}
+                              </Btn>
+                            )}
+                            {genType === "carousel" && (
+                              <Btn variant="secondary" style={{
+                                fontSize: "12px", padding: "6px 12px",
+                                background: postnitroStatus[`postnitro_${p.id}`] === "success" ? T.greenLight :
+                                  postnitroStatus[`postnitro_${p.id}`] === "error" ? T.redLight : undefined,
+                              }} onClick={e => sendToPostNitro(e, p, result, null)}>
+                                {postnitroStatus[`postnitro_${p.id}`] === "sending" ? "Sending..." :
+                                  postnitroStatus[`postnitro_${p.id}`] === "success" ? "✓ Sent to PostNitro" :
+                                  postnitroStatus[`postnitro_${p.id}`] === "error" ? "Error — Retry" :
+                                  "Send to PostNitro →"}
                               </Btn>
                             )}
                             <Btn variant="ghost" style={{ fontSize: "12px", padding: "6px 12px" }}
@@ -614,7 +652,6 @@ Make it specific, vivid, and warm. The viewer should feel understood before they
                       </div>
                     </div>
 
-                    {/* Pain points when empty */}
                     {!result && !isLoading && (
                       <div style={{ padding: "12px 20px 16px", display: "flex", gap: "8px", flexWrap: "wrap" }}>
                         {p.painPoints.map((pt, i) => (
@@ -626,14 +663,12 @@ Make it specific, vivid, and warm. The viewer should feel understood before they
                       </div>
                     )}
 
-                    {/* Loading state */}
                     {isLoading && (
                       <div style={{ padding: "20px", textAlign: "center", color: T.muted, fontSize: "13px" }}>
                         Building content package for {p.name}...
                       </div>
                     )}
 
-                    {/* Preview when collapsed */}
                     {result && !isExpanded && (
                       <div style={{ padding: "10px 20px 14px" }}>
                         <div style={{ fontSize: "12px", color: T.muted, fontStyle: "italic", lineHeight: 1.5 }}>
@@ -642,7 +677,6 @@ Make it specific, vivid, and warm. The viewer should feel understood before they
                       </div>
                     )}
 
-                    {/* Full content */}
                     {result && isExpanded && (
                       <div style={{
                         padding: "20px", fontSize: "13px", lineHeight: 1.8,
@@ -675,7 +709,6 @@ Make it specific, vivid, and warm. The viewer should feel understood before they
               ))}
             </div>
 
-            {/* Format selector */}
             <div style={{ display: "flex", gap: "6px", marginBottom: "20px", flexWrap: "wrap" }}>
               {(trackType === "video" ? VIDEO_FORMATS : CAROUSEL_FORMATS).map(f => (
                 <button key={f.id} onClick={() => setTrackFormat(f.id)} style={{
@@ -688,7 +721,6 @@ Make it specific, vivid, and warm. The viewer should feel understood before they
               ))}
             </div>
 
-            {/* Metric inputs */}
             <div style={{ display: "flex", flexDirection: "column", gap: "10px" }}>
               {PERSONAS.map(p => {
                 const metrics = trackType === "video" ? videoMetrics : carouselMetrics;
@@ -727,11 +759,9 @@ Make it specific, vivid, and warm. The viewer should feel understood before they
 
         {/* ── INSIGHTS TAB ── */}
         {tab === "insights" && (() => {
-          // ── COMPUTE INTELLIGENCE ──
           const allScores = [];
           const personaScores = {};
           const formatScores = {};
-          const hookScores = {};
 
           PERSONAS.forEach(p => {
             let pTotal = 0, pCount = 0;
@@ -743,8 +773,6 @@ Make it specific, vivid, and warm. The viewer should feel understood before they
                 pTotal += s; pCount++;
                 formatScores[f.id] = (formatScores[f.id] || []);
                 formatScores[f.id].push(s);
-                hookScores[f.label] = (hookScores[f.label] || []);
-                hookScores[f.label].push(s);
               }
             });
             CAROUSEL_FORMATS.forEach(f => {
@@ -765,7 +793,6 @@ Make it specific, vivid, and warm. The viewer should feel understood before they
           const rankedPersonas = Object.values(personaScores).sort((a, b) => b.avg - a.avg);
           const hasData = allScores.length > 0;
 
-          // Bait/Anchor health
           const videoAvg = VIDEO_FORMATS.reduce((sum, f) => {
             const rates = PERSONAS.map(p => parseFloat(getSaveRate(videoMetrics, f.id, p.id) || 0));
             return sum + rates.reduce((a, b) => a + b, 0) / rates.filter(r => r > 0).length || 0;
@@ -782,11 +809,10 @@ Make it specific, vivid, and warm. The viewer should feel understood before they
                 <Card style={{ padding: "32px", textAlign: "center", marginBottom: "20px" }}>
                   <div style={{ fontSize: "32px", marginBottom: "12px" }}>💡</div>
                   <div style={{ fontSize: "14px", fontWeight: 700, color: T.ink, marginBottom: "6px" }}>No performance data yet</div>
-                  <div style={{ fontSize: "12px", color: T.muted }}>Enter 2s hold %, 6s view %, saves, and views in the Track tab after posts go live. The intelligence layer activates automatically.</div>
+                  <div style={{ fontSize: "12px", color: T.muted }}>Enter 2s hold %, 6s view %, saves, and views in the Track tab after posts go live.</div>
                 </Card>
               )}
 
-              {/* ── SYSTEM HEALTH ── */}
               <Card style={{ marginBottom: "20px", padding: "16px", borderLeft: `3px solid ${baitAnchorHealthy ? T.green : T.gold}` }}>
                 <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
                   <Label>Bait / Anchor Health</Label>
@@ -801,7 +827,6 @@ Make it specific, vivid, and warm. The viewer should feel understood before they
                 </div>
               </Card>
 
-              {/* ── SIGNAL SCORE MATRIX ── */}
               {[["video", "🎬 Video Signal Matrix", VIDEO_FORMATS, videoMetrics], ["carousel", "🖼️ Carousel Signal Matrix", CAROUSEL_FORMATS, carouselMetrics]].map(([type, label, formats, metrics]) => (
                 <Card key={type} style={{ marginBottom: "20px", padding: "20px" }}>
                   <div style={{ fontSize: "14px", fontWeight: 700, marginBottom: "4px" }}>{label}</div>
@@ -849,7 +874,6 @@ Make it specific, vivid, and warm. The viewer should feel understood before they
                 </Card>
               ))}
 
-              {/* ── PERSONA INTELLIGENCE RANKING ── */}
               {rankedPersonas.length > 0 && (
                 <Card style={{ marginBottom: "20px", padding: "20px" }}>
                   <div style={{ fontSize: "14px", fontWeight: 700, marginBottom: "16px" }}>📊 Persona Performance Ranking</div>
@@ -875,12 +899,10 @@ Make it specific, vivid, and warm. The viewer should feel understood before they
                 </Card>
               )}
 
-              {/* ── CONTENT RECOMMENDATIONS ── */}
               {topContent.length > 0 && (
                 <Card style={{ marginBottom: "20px", padding: "20px" }}>
                   <div style={{ fontSize: "14px", fontWeight: 700, marginBottom: "4px" }}>🎯 Content Recommendations</div>
-                  <div style={{ fontSize: "11px", color: T.muted, marginBottom: "16px" }}>Based on signal score performance — generate more of what's working</div>
-
+                  <div style={{ fontSize: "11px", color: T.muted, marginBottom: "16px" }}>Based on signal score performance</div>
                   <div style={{ marginBottom: "16px" }}>
                     <div style={{ fontSize: "12px", fontWeight: 700, color: T.green, marginBottom: "8px" }}>▲ Double Down — Highest Signal</div>
                     {topContent.map((c, i) => (
@@ -898,7 +920,6 @@ Make it specific, vivid, and warm. The viewer should feel understood before they
                       </div>
                     ))}
                   </div>
-
                   {bottomContent.length > 0 && (
                     <div>
                       <div style={{ fontSize: "12px", fontWeight: 700, color: T.gold, marginBottom: "8px" }}>▼ Revise or Replace — Lowest Signal</div>
@@ -921,7 +942,6 @@ Make it specific, vivid, and warm. The viewer should feel understood before they
                 </Card>
               )}
 
-              {/* ── BENCHMARK CONTEXT ── */}
               <Card style={{ marginBottom: "20px", padding: "20px" }}>
                 <div style={{ fontSize: "14px", fontWeight: 700, marginBottom: "16px" }}>📈 Industry Benchmarks — Supplement Category</div>
                 {[
@@ -937,7 +957,7 @@ Make it specific, vivid, and warm. The viewer should feel understood before they
                     padding: "10px 0", borderBottom: `1px solid ${T.border}`,
                   }}>
                     <div style={{ minWidth: "140px", fontWeight: 700, fontSize: "12px", color: T.body }}>{metric}</div>
-                    <div style={{ minWidth: "80px", fontWeight: 900, fontSize: "13px", color: T.teal }}>{benchmark}</div>
+                    <div style={{ minWidth: "80px", fontWeight: 900, fontSize: "13px", color: T.gold }}>{benchmark}</div>
                     <div style={{ fontSize: "11px", color: T.muted, flex: 1 }}>{note}</div>
                   </div>
                 ))}
@@ -954,11 +974,9 @@ Make it specific, vivid, and warm. The viewer should feel understood before they
               <div style={{ fontSize: "13px", color: T.body, lineHeight: 1.6 }}>
                 Every piece of generated content receives a unique ID and attribute tags at creation.
                 Track its full lifetime from Organic → Paid → Evergreen → Cross-Platform → Repurposed → Templated → Retired.
-                The system recommends the next stage based on performance data.
               </div>
             </Card>
 
-            {/* Filter */}
             <div style={{ display: "flex", gap: "6px", marginBottom: "16px", flexWrap: "wrap" }}>
               {["all", ...CONTENT_STAGES].map(s => (
                 <button key={s} onClick={() => setGenomeFilter(s)} style={{
@@ -992,14 +1010,11 @@ Make it specific, vivid, and warm. The viewer should feel understood before they
                             <div style={{ fontSize: "11px", color: T.muted, marginTop: "2px" }}>{item.persona} · {item.format} · {item.date}</div>
                           </div>
                         </div>
-                        <div style={{ display: "flex", gap: "6px", alignItems: "center", flexWrap: "wrap" }}>
-                          <Badge color={item.type === "video" ? T.blue : T.gold} bg={item.type === "video" ? T.blueLight : T.goldLight}>
-                            {item.type === "video" ? "🎬 Video" : "🖼️ Carousel"}
-                          </Badge>
-                        </div>
+                        <Badge color={item.type === "video" ? T.blue : T.gold} bg={item.type === "video" ? T.blueLight : T.goldLight}>
+                          {item.type === "video" ? "🎬 Video" : "🖼️ Carousel"}
+                        </Badge>
                       </div>
 
-                      {/* Attributes */}
                       <div style={{ display: "flex", gap: "6px", flexWrap: "wrap", marginBottom: "12px" }}>
                         {Object.entries(item.attributes).map(([k, v]) => (
                           <span key={k} style={{
@@ -1011,7 +1026,6 @@ Make it specific, vivid, and warm. The viewer should feel understood before they
                         ))}
                       </div>
 
-                      {/* Landing Page Signal — shows when Templated */}
                       {item.stage === "Templated" && (
                         <div style={{
                           marginTop: "12px", padding: "12px 14px",
@@ -1022,13 +1036,11 @@ Make it specific, vivid, and warm. The viewer should feel understood before they
                             🏆 Landing Page Signal Activated
                           </div>
                           <div style={{ fontSize: "11px", color: T.goldDark, lineHeight: 1.6 }}>
-                            <strong>Element:</strong> {LANDING_PAGE_MAP[item.attributes.format?.toLowerCase().replace(/ /g,'_').replace(/\//g,'_')] ? LANDING_PAGE_MAP[item.attributes.format?.toLowerCase().replace(/ /g,'_').replace(/\//g,'_')].element : "Product Listing Copy"}<br/>
-                            This content's hook language, pain point framing, and CTA tone are recommended for the Lipitrex Amazon listing and landing pages. The audience proved it works — let the data write the copy.
+                            This content's hook language and CTA tone are recommended for the Lipitrex Amazon listing and landing pages.
                           </div>
                         </div>
                       )}
 
-                      {/* Stage tracker */}
                       <div>
                         <Label>Lifetime Stage</Label>
                         <div style={{ display: "flex", gap: "4px", flexWrap: "wrap" }}>
@@ -1064,11 +1076,9 @@ Make it specific, vivid, and warm. The viewer should feel understood before they
                 When content reaches Stage 6 — Templated — the system activates a Landing Page Signal.
                 The hook language, pain point framing, emotional tone, and CTA structure from winning content
                 maps directly to your Amazon listing, A+ content, and product landing pages.
-                The audience proved what works. Let the data write the copy.
               </div>
             </Card>
 
-            {/* Translation map */}
             <Card style={{ marginBottom: "20px", padding: "20px" }}>
               <div style={{ fontSize: "14px", fontWeight: 700, marginBottom: "16px" }}>Content → Listing Translation</div>
               <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "10px" }}>
@@ -1076,8 +1086,8 @@ Make it specific, vivid, and warm. The viewer should feel understood before they
                   ["🎬 Hook Language", "Above the fold headline", "The hook that stopped the scroll in 2 seconds is the headline that stops the browser scroll."],
                   ["😤 Pain Point Comments", "Bullet points", "The pain points generating the most comment sentiment become your primary listing bullet points — in the buyer's own language."],
                   ["📖 Before & After Story", "Testimonial section", "The story arc that resonates becomes the testimonial template and featured review structure."],
-                  ["🌿 Ingredient Spotlight", "A+ content modules", "The ingredient that gets bookmarked most becomes the A+ content structure — same information architecture, different canvas."],
-                  ["📣 CTA Tone", "Add to Cart copy", "Soft, medium, or hard — the CTA aggressiveness that appears most in high-attribution IDs becomes the listing CTA approach."],
+                  ["🌿 Ingredient Spotlight", "A+ content modules", "The ingredient that gets bookmarked most becomes the A+ content structure."],
+                  ["📣 CTA Tone", "Add to Cart copy", "The CTA aggressiveness that appears most in high-attribution IDs becomes the listing CTA approach."],
                   ["👤 Avatar Demographics", "Ad targeting", "The persona with the highest Amazon Attribution conversion rate becomes your primary paid targeting demographic."],
                 ].map(([source, element, desc], i) => (
                   <div key={i} style={{
@@ -1092,7 +1102,6 @@ Make it specific, vivid, and warm. The viewer should feel understood before they
               </div>
             </Card>
 
-            {/* Active landing page signals from genome */}
             <div style={{ marginBottom: "8px" }}>
               <Label>Active Landing Page Signals — From Templated Content</Label>
             </div>
@@ -1101,8 +1110,7 @@ Make it specific, vivid, and warm. The viewer should feel understood before they
                 <div style={{ fontSize: "28px", marginBottom: "10px" }}>🏆</div>
                 <div style={{ fontSize: "14px", fontWeight: 600, color: T.ink, marginBottom: "6px" }}>No Templated content yet</div>
                 <div style={{ fontSize: "12px", color: T.muted }}>
-                  As content IDs accumulate and win consistently, the system will flag them as Templated
-                  and activate Landing Page Signals here. Generate content and track performance to build toward this.
+                  As content IDs accumulate and win consistently, the system will flag them as Templated and activate Landing Page Signals here.
                 </div>
               </Card>
             ) : (
@@ -1122,7 +1130,6 @@ Make it specific, vivid, and warm. The viewer should feel understood before they
                       <div style={{ fontSize: "12px", color: T.goldDark, lineHeight: 1.6 }}>
                         This content's winning attributes — hook language, pain point framing, emotional tone, CTA structure —
                         are recommended for your Lipitrex Amazon listing and product landing pages.
-                        Review the full content output and extract the copy that performed.
                       </div>
                     </div>
                   </Card>
@@ -1130,14 +1137,12 @@ Make it specific, vivid, and warm. The viewer should feel understood before they
               </div>
             )}
 
-            {/* Multi-supplement note */}
             <Card style={{ marginTop: "20px", padding: "16px", background: T.faint }}>
               <Label>Multi-Supplement Extension</Label>
               <div style={{ fontSize: "13px", color: T.body, lineHeight: 1.6 }}>
                 Every supplement in Brad's catalog gets its own genome, its own matrix, and its own landing page signals.
                 As the catalog builds, the genomes cross-reference — a buyer who converts on Lipitrex has attributes
-                that predict which other supplements they'll buy. The system surfaces cross-sell opportunities
-                and builds a complete map of Brad's buyer universe across every product.
+                that predict which other supplements they'll buy.
               </div>
             </Card>
           </>
@@ -1146,15 +1151,15 @@ Make it specific, vivid, and warm. The viewer should feel understood before they
         {/* ── REPORTING TAB ── */}
         {tab === "reporting" && (
           <>
-            {/* Active tools */}
             <div style={{ marginBottom: "8px" }}>
               <Label>Active — Connected Now</Label>
             </div>
             <div style={{ display: "flex", flexDirection: "column", gap: "10px", marginBottom: "24px" }}>
               {[
-                { name: "TikTok Studio", desc: "Native analytics — views, saves, follower growth, watch time, completion rate.", url: "https://studio.tiktok.com", cost: "Free", active: true },
-                { name: "Amazon Attribution", desc: "Tracks TikTok bio link clicks through to Amazon purchases. ASIN: B08B9SH5XH.", url: "https://advertising.amazon.com", cost: "Free", active: true },
-                { name: "TikTok Creative Center", desc: "Free competitor intelligence — search competing supplement brands' ad content.", url: "https://ads.tiktok.com/business/creativecenter", cost: "Free", active: true },
+                { name: "TikTok Studio", desc: "Native analytics — views, saves, follower growth, watch time, completion rate.", url: "https://studio.tiktok.com", cost: "Free" },
+                { name: "Amazon Attribution", desc: "Tracks TikTok bio link clicks through to Amazon purchases. ASIN: B08B9SH5XH.", url: "https://advertising.amazon.com", cost: "Free" },
+                { name: "TikTok Creative Center", desc: "Free competitor intelligence — search competing supplement brands' ad content.", url: "https://ads.tiktok.com/business/creativecenter", cost: "Free" },
+                { name: "PostNitro", desc: "Automated carousel generation. Triggered directly from the Generate tab when Carousel Posts mode is active.", url: "https://postnitro.ai", cost: "$25 + $10 API/mo" },
               ].map(tool => (
                 <Card key={tool.name} style={{ padding: "16px" }}>
                   <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
@@ -1174,14 +1179,13 @@ Make it specific, vivid, and warm. The viewer should feel understood before they
               ))}
             </div>
 
-            {/* Coming soon tools */}
             <div style={{ marginBottom: "8px" }}>
               <Label>Coming Soon — Activates With IG + YouTube Expansion</Label>
             </div>
             <div style={{ display: "flex", flexDirection: "column", gap: "10px", marginBottom: "24px" }}>
               {[
-                { name: "Socialinsider", badge: "Cross-Platform Intelligence", desc: "Competitor benchmarking across TikTok, Instagram Reels, and YouTube Shorts. Cross-platform signal in one view.", cost: "~$99/mo", why: "Activates when IG + YT go live." },
-                { name: "NexLev", badge: "YouTube Niche Intelligence", desc: "AI-powered YouTube niche finder. Surfaces breakout channels and underserved content angles in the supplement space.", cost: "Lower tier", why: "Activates with YouTube Shorts expansion." },
+                { name: "Socialinsider", badge: "Cross-Platform Intelligence", desc: "Competitor benchmarking across TikTok, Instagram Reels, and YouTube Shorts.", cost: "~$99/mo", why: "Activates when IG + YT go live." },
+                { name: "NexLev", badge: "YouTube Niche Intelligence", desc: "AI-powered YouTube niche finder. Surfaces breakout channels and underserved content angles.", cost: "Lower tier", why: "Activates with YouTube Shorts expansion." },
                 { name: "Amazon Attribution — Per Persona", badge: "Revenue by Persona", desc: "Separate attribution tags per buyer profile via Linktree. Shows which persona drives the most Amazon purchases.", cost: "Free", why: "Ready to activate now — requires Linktree + 5 Amazon Attribution tags." },
               ].map(tool => (
                 <Card key={tool.name} style={{ padding: "16px", opacity: 0.65 }}>
@@ -1197,11 +1201,10 @@ Make it specific, vivid, and warm. The viewer should feel understood before they
               ))}
             </div>
 
-            {/* Cost summary */}
             <Card style={{ padding: "20px" }}>
               <Label>Monthly Cost at Each Stage</Label>
               <div style={{ display: "grid", gridTemplateColumns: "repeat(3, 1fr)", gap: "16px", marginTop: "8px" }}>
-                {[["Now", "$20", "Claude Pro + free tools"], ["With IG + YT", "~$119", "+ Socialinsider"], ["At Scale", "~$220+", "+ NexLev + advanced"]].map(([stage, cost, note]) => (
+                {[["Now", "$35", "Claude + PostNitro + free tools"], ["With IG + YT", "~$134", "+ Socialinsider"], ["At Scale", "~$235+", "+ NexLev + advanced"]].map(([stage, cost, note]) => (
                   <div key={stage} style={{ textAlign: "center", padding: "16px", background: T.faint, borderRadius: T.radiusSm, border: `1px solid ${T.border}` }}>
                     <div style={{ fontSize: "10px", color: T.muted, fontWeight: 700, textTransform: "uppercase", marginBottom: "6px" }}>{stage}</div>
                     <div style={{ fontSize: "24px", fontWeight: 800, color: T.gold }}>{cost}<span style={{ fontSize: "12px", color: T.muted }}>/mo</span></div>
