@@ -43,7 +43,7 @@ export default async function handler(req, res) {
     let result = null;
     for (let i = 0; i < 20; i++) {
       await new Promise(r => setTimeout(r, 3000));
-      const statusRes = await fetch(`https://embed-api.postnitro.ai/post/request-status/${embedPostId}`, {
+      const statusRes = await fetch(`https://embed-api.postnitro.ai/post/status/${embedPostId}`, {
         headers: { "embed-api-key": process.env.POSTNITRO_API_KEY },
       });
       const statusData = await statusRes.json();
@@ -52,7 +52,7 @@ export default async function handler(req, res) {
         result = statusData;
         break;
       }
-      if (statusData.data?.status === "FAILED") {
+      if (statusData.data?.embedPost?.status === "FAILED") {
         return res.status(500).json({ error: "PostNitro generation failed", detail: statusData });
       }
     }
