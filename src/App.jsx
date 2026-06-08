@@ -426,13 +426,13 @@ Make it specific, vivid, and warm. The viewer should feel understood before they
     const slideMatches = [...result.matchAll(/Slide\s+(\d+)[:\s]+([^\n]+)\n([^\n]+)/gi)];
     const slides = slideMatches.length > 0
       ? slideMatches.map((m, i) => ({
-          type: i === 0 ? "starting_slide" : i === slideMatches.length - 1 ? "ending_slide" : "middle_slide",
+          type: i === 0 ? "starting_slide" : i === slideMatches.length - 1 ? "ending_slide" : "body_slide",
           heading: m[2]?.trim() || `Slide ${m[1]}`,
           description: m[3]?.trim() || "",
         }))
       : [
           { type: "starting_slide", heading: "Did you know?", description: result.split('\n').find(l => l.trim() && !l.startsWith('#'))?.slice(0, 100) || "" },
-          { type: "middle_slide", heading: "Here's what helps", description: persona.angle },
+          { type: "body_slide", heading: "Here's what helps", description: persona.angle },
           { type: "ending_slide", heading: "Try Lipitrex", description: "Plant-based support for fluid balance. Link in bio." },
         ];
 
@@ -443,7 +443,7 @@ Make it specific, vivid, and warm. The viewer should feel understood before they
         body: JSON.stringify({ slides }),
       });
       const data = await res.json();
-      if (data.status === "COMPLETED" || data.requestId) {
+      if (data.data?.status === "COMPLETED" || data.success) {
         setPostnitroStatus(prev => ({ ...prev, [key]: "success" }));
       } else {
         setPostnitroStatus(prev => ({ ...prev, [key]: "error" }));
