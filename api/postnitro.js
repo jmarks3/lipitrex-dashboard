@@ -28,24 +28,25 @@ export default async function handler(req, res) {
 
     const initiateData = await initiateRes.json();
 
-    if (!initiateData.requestId) {
-      return res.status(500).json({ error: "No requestId returned", detail: initiateData });
+    if (!initiateData.success || !initiateData.data?.embedPostId) {
+      return res.status(500).json({ error: "PostNitro initiation failed", detail: initiateData });
     }
 
+    const embedPostId = initiateData.data.embedPostId;
+
     // Poll for completion
-    const requestId = initiateData.requestId;
     let result = null;
     for (let i = 0; i < 20; i++) {
-      await new Promise((r) => setTimeout(r, 3000));
-      const statusRes = await fetch(`https://embed-api.postnitro.ai/post/request-status/${requestId}`, {
+      await new Promise(r => setTimeout(r, 3000));
+      const statusRes = await fetch(`https://embed-api.postnitro.ai/post/request-status/${embedPostId}`, {
         headers: { "embed-api-key": process.env.POSTNITRO_API_KEY },
       });
       const statusData = await statusRes.json();
-      if (statusData.status === "COMPLETED") {
+      if (statusData.data?.status === "COMPLETED") {
         result = statusData;
         break;
       }
-      if (statusData.status === "FAILED") {
+      if (statusData.data?.status === "FAILED") {
         return res.status(500).json({ error: "PostNitro generation failed", detail: statusData });
       }
     }
