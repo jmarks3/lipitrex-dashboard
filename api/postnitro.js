@@ -21,7 +21,7 @@ export default async function handler(req, res) {
       method: "POST",
       headers: {
         "Content-Type": "application/json",
-        "embed-api-key": process.env.POSTNITRO_API_KEY,
+        "embed-api-key": "pn-fbplko8cri6ooonrmai2lzqc",
       },
       body: JSON.stringify(payload),
     });
