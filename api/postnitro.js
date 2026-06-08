@@ -9,11 +9,6 @@ export default async function handler(req, res) {
   try {
     const { slides } = req.body;
 
-    console.log("API key length:", process.env.POSTNITRO_API_KEY?.length);
-    console.log("API key prefix:", process.env.POSTNITRO_API_KEY?.slice(0, 5));
-    console.log("Template ID:", process.env.POSTNITRO_TEMPLATE_ID);
-    console.log("Brand ID:", process.env.POSTNITRO_BRAND_ID);
-
     const payload = {
       postType: "CAROUSEL",
       templateId: process.env.POSTNITRO_TEMPLATE_ID,
@@ -40,16 +35,17 @@ export default async function handler(req, res) {
 
     const embedPostId = initiateData.data.embedPostId;
 
-    let result = null;
+    // Poll for completion
+    let completed = false;
     for (let i = 0; i < 20; i++) {
       await new Promise(r => setTimeout(r, 3000));
       const statusRes = await fetch(`https://embed-api.postnitro.ai/post/status/${embedPostId}`, {
         headers: { "embed-api-key": process.env.POSTNITRO_API_KEY },
       });
       const statusData = await statusRes.json();
-      console.log(`Poll ${i + 1} status:`, statusData.data?.status);
-      if (statusData.data?.status === "COMPLETED") {
-        result = statusData;
+      console.log(`Poll ${i + 1} status:`, statusData.data?.embedPost?.status);
+      if (statusData.data?.embedPost?.status === "COMPLETED") {
+        completed = true;
         break;
       }
       if (statusData.data?.embedPost?.status === "FAILED") {
@@ -57,9 +53,17 @@ export default async function handler(req, res) {
       }
     }
 
-    if (!result) return res.status(500).json({ error: "Timed out waiting for carousel" });
+    if (!completed) return res.status(500).json({ error: "Timed out waiting for carousel" });
 
-    return res.status(200).json(result);
+    // Fetch output
+    const outputRes = await fetch(`https://embed-api.postnitro.ai/post/output/${embedPostId}`, {
+      headers: { "embed-api-key": process.env.POSTNITRO_API_KEY },
+    });
+    const outputData = await outputRes.json();
+    console.log("PostNitro output:", JSON.stringify(outputData));
+
+    return res.status(200).json(outputData);
+
   } catch (err) {
     console.log("Error:", err.message);
     return res.status(500).json({ error: err.message });
