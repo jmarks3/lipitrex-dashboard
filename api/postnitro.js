@@ -10,11 +10,12 @@ export default async function handler(req, res) {
     const { slides } = req.body;
 
     const payload = {
-      postType: "CAROUSEL",
-      templateId: process.env.POSTNITRO_TEMPLATE_ID,
-      responseType: "PNG",
-      slides: slides,
-    };
+  postType: "CAROUSEL",
+  templateId: process.env.POSTNITRO_TEMPLATE_ID,
+  brandId: process.env.POSTNITRO_BRAND_ID,
+  responseType: "PNG",
+  slides: slides,
+};
 
     const initiateRes = await fetch("https://embed-api.postnitro.ai/post/initiate/import", {
       method: "POST",
