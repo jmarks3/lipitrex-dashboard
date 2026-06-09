@@ -423,26 +423,42 @@ Make it specific, vivid, and warm. The viewer should feel understood before they
   const key = `postnitro_${persona.id}`;
   setPostnitroStatus(prev => ({ ...prev, [key]: "sending" }));
 
-  // Parse slides from ### SLIDE N format
-  const slideBlocks = result.split(/###\s+SLIDE\s+\d+[^#]*/i).filter(s => s.trim());
-  
+  // Split on SLIDE headers, keeping the header with each block
+  const slideRegex = /###\s+SLIDE\s+\d+[^\n]*/gi;
+  const slidePositions = [];
+  let match;
+  while ((match = slideRegex.exec(result)) !== null) {
+    slidePositions.push(match.index);
+  }
+
   let slides = [];
-  if (slideBlocks.length >= 3) {
-    slides = slideBlocks.slice(0, 3).map((block, i) => {
-      const headlineMatch = block.match(/\*+"([^"*]+)"\*+|Headline Text[:\s]+\*?"?([^*\n"]+)"?\*?/i);
-      const bodyMatch = block.match(/Body Text[:\s]+([^\n#]+(?:\n(?!###|##)[^\n#]+)*)/i);
-      const heading = headlineMatch ? (headlineMatch[1] || headlineMatch[2] || "").trim() : "";
-      const description = bodyMatch ? bodyMatch[1].replace(/\*/g, "").trim() : "";
+  if (slidePositions.length >= 3) {
+    const slideTexts = slidePositions.map((pos, i) => {
+      const end = slidePositions[i + 1] || result.length;
+      return result.slice(pos, end);
+    });
+
+    slides = slideTexts.slice(0, 3).map((block, i) => {
+      // Extract headline — look for quoted text after "Headline Text:" or bold quoted text
+      const headlineMatch = block.match(/Headline Text[:\s*]+(?:\n+)?\*?[">]?\*?"?([^"\n*>]+)"?\*?/i) ||
+                            block.match(/>\s*["""]([^"""\n]+)["""]/);
+      // Extract body — look for text after "Body Text:"
+      const bodyMatch = block.match(/Body Text[:\s*]+(?:\n+)?>\s*([^\n]+(?:\n(?!###|##|>|\*\*)[^\n]+)*)/i) ||
+                        block.match(/Body Text[:\s*]+(?:\n+)?([^\n#>*]+(?:\n(?!###|##)[^\n#>*]+)*)/i);
+
+      const heading = headlineMatch ? headlineMatch[1].replace(/[*">]/g, "").trim() : `Slide ${i + 1}`;
+      const description = bodyMatch ? bodyMatch[1].replace(/[*>]/g, "").trim() : persona.angle;
+
       return {
-        type: i === 0 ? "starting_slide" : i === slideBlocks.length - 1 ? "ending_slide" : "body_slide",
+        type: i === 0 ? "starting_slide" : i === slideTexts.length - 1 ? "ending_slide" : "body_slide",
         heading: heading || `Slide ${i + 1}`,
         description: description || persona.angle,
       };
     });
   } else {
     slides = [
-      { type: "starting_slide", heading: "My shoes fit at 9am. By 3pm, I couldn't get them off.", description: "If your feet and legs swell through the day — you already know." },
-      { type: "body_slide", heading: "Horse Chestnut. Look it up.", description: persona.angle },
+      { type: "starting_slide", heading: "Did you know?", description: result.split('\n').find(l => l.trim() && !l.startsWith('#'))?.slice(0, 100) || "" },
+      { type: "body_slide", heading: "Here's what helps", description: persona.angle },
       { type: "ending_slide", heading: "Try Lipitrex", description: "Plant-based support for fluid balance. Link in bio." },
     ];
   }
@@ -454,8 +470,11 @@ Make it specific, vivid, and warm. The viewer should feel understood before they
       body: JSON.stringify({ slides }),
     });
     const data = await res.json();
-    if (data.data?.status === "COMPLETED" || data.success) {
+    if (data.success) {
       setPostnitroStatus(prev => ({ ...prev, [key]: "success" }));
+      if (data.data?.result?.data) {
+        setPostnitroOutputs(prev => ({ ...prev, [key]: data.data.result.data }));
+      }
     } else {
       setPostnitroStatus(prev => ({ ...prev, [key]: "error" }));
     }
@@ -463,18 +482,6 @@ Make it specific, vivid, and warm. The viewer should feel understood before they
     setPostnitroStatus(prev => ({ ...prev, [key]: "error" }));
   }
 };
-
-  const updateMetric = (type, fId, pId, field, val) => {
-    if (type === "video") {
-      setVideoMetrics(prev => ({ ...prev, [fId]: { ...prev[fId], [pId]: { ...prev[fId][pId], [field]: val } } }));
-    } else {
-      setCarouselMetrics(prev => ({ ...prev, [fId]: { ...prev[fId], [pId]: { ...prev[fId][pId], [field]: val } } }));
-    }
-  };
-
-  const updateStage = (id, stage) => {
-    setContentLog(prev => prev.map(item => item.id === id ? { ...item, stage } : item));
-  };
 
   const TABS = [
     { id: "generate", label: "Generate", emoji: "🎬" },
