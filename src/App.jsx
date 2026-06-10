@@ -470,7 +470,7 @@ Make it specific, vivid, and warm. The viewer should feel understood before they
       body: JSON.stringify({ slides }),
     });
     const data = await res.json();
-    if (data.success) {
+    if (data.success || data?.data?.embedPost?.status === "COMPLETED") {
       setPostnitroStatus(prev => ({ ...prev, [key]: "success" }));
       if (data.data?.result?.data) {
         setPostnitroOutputs(prev => ({ ...prev, [key]: data.data.result.data }));
