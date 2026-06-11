@@ -423,7 +423,7 @@ Make it specific, vivid, and warm. The viewer should feel understood before they
   const key = `postnitro_${persona.id}`;
   setPostnitroStatus(prev => ({ ...prev, [key]: "sending" }));
 
-  // Split on SLIDE headers, keeping the header with each block
+  // Parse slides from ### SLIDE N format
   const slideRegex = /###\s+SLIDE\s+\d+[^\n]*/gi;
   const slidePositions = [];
   let match;
@@ -439,15 +439,14 @@ Make it specific, vivid, and warm. The viewer should feel understood before they
     });
 
     slides = slideTexts.slice(0, 3).map((block, i) => {
-      // Extract headline — look for quoted text after "Headline Text:" or bold quoted text
       const headlineLines = [];
-const headlineSection = block.match(/Headline Text[:\s*]+\n((?:>[^\n]+\n?)+)/i);
-if (headlineSection) {
-  headlineLines.push(...headlineSection[1].match(/>[^\n]+/g)
-    ?.map(l => l.replace(/^>\s*/, "").replace(/\*/g, "").trim()) || []);
-}
-const headlineMatch = headlineLines.length ? [null, headlineLines.join(" ")] : null;
-      // Extract body — look for text after "Body Text:"
+      const headlineSection = block.match(/Headline Text[:\s*]+\n((?:>[^\n]+\n?)+)/i);
+      if (headlineSection) {
+        headlineLines.push(...headlineSection[1].match(/>[^\n]+/g)
+          ?.map(l => l.replace(/^>\s*/, "").replace(/\*/g, "").trim()) || []);
+      }
+      const headlineMatch = headlineLines.length ? [null, headlineLines.join(" ")] : null;
+
       const bodyMatch = block.match(/Body Text[:\s*]+(?:\n+)?>\s*([^\n]+(?:\n(?!###|##|>|\*\*)[^\n]+)*)/i) ||
                         block.match(/Body Text[:\s*]+(?:\n+)?([^\n#>*]+(?:\n(?!###|##)[^\n#>*]+)*)/i);
 
@@ -469,20 +468,45 @@ const headlineMatch = headlineLines.length ? [null, headlineLines.join(" ")] : n
   }
 
   try {
-    const res = await fetch("https://lipitrex-dashboard.vercel.app/api/postnitro", {
+    // Step 1 — initiate
+    const initRes = await fetch("https://lipitrex-dashboard.vercel.app/api/postnitro", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({ slides }),
     });
-    const data = await res.json();
-    if (data.success || data?.data?.embedPost?.status === "COMPLETED") {
-      setPostnitroStatus(prev => ({ ...prev, [key]: "success" }));
-      if (data.data?.result?.data) {
-        setPostnitroOutputs(prev => ({ ...prev, [key]: data.data.result.data }));
-      }
-    } else {
+    const initData = await initRes.json();
+    if (!initData.embedPostId) {
       setPostnitroStatus(prev => ({ ...prev, [key]: "error" }));
+      return;
     }
+
+    const embedPostId = initData.embedPostId;
+
+    // Step 2 — poll from frontend
+    let attempts = 0;
+    const poll = async () => {
+      if (attempts >= 20) {
+        setPostnitroStatus(prev => ({ ...prev, [key]: "error" }));
+        return;
+      }
+      attempts++;
+      const statusRes = await fetch(`https://lipitrex-dashboard.vercel.app/api/postnitro-status?embedPostId=${embedPostId}`);
+      const statusData = await statusRes.json();
+
+      if (statusData.status === "COMPLETED") {
+        setPostnitroStatus(prev => ({ ...prev, [key]: "success" }));
+        if (statusData.images?.length) {
+          setPostnitroOutputs(prev => ({ ...prev, [key]: statusData.images }));
+        }
+      } else if (statusData.status === "FAILED") {
+        setPostnitroStatus(prev => ({ ...prev, [key]: "error" }));
+      } else {
+        setTimeout(poll, 3000);
+      }
+    };
+
+    setTimeout(poll, 3000);
+
   } catch (err) {
     setPostnitroStatus(prev => ({ ...prev, [key]: "error" }));
   }
