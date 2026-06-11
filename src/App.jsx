@@ -440,8 +440,13 @@ Make it specific, vivid, and warm. The viewer should feel understood before they
 
     slides = slideTexts.slice(0, 3).map((block, i) => {
       // Extract headline — look for quoted text after "Headline Text:" or bold quoted text
-      const headlineMatch = block.match(/Headline Text[:\s*]+(?:\n+)?\*?[">]?\*?"?([^"\n*>]+)"?\*?/i) ||
-                            block.match(/>\s*["""]([^"""\n]+)["""]/);
+      const headlineLines = [];
+const headlineSection = block.match(/Headline Text[:\s*]+\n((?:>[^\n]+\n?)+)/i);
+if (headlineSection) {
+  headlineLines.push(...headlineSection[1].match(/>[^\n]+/g)
+    ?.map(l => l.replace(/^>\s*/, "").replace(/\*/g, "").trim()) || []);
+}
+const headlineMatch = headlineLines.length ? [null, headlineLines.join(" ")] : null;
       // Extract body — look for text after "Body Text:"
       const bodyMatch = block.match(/Body Text[:\s*]+(?:\n+)?>\s*([^\n]+(?:\n(?!###|##|>|\*\*)[^\n]+)*)/i) ||
                         block.match(/Body Text[:\s*]+(?:\n+)?([^\n#>*]+(?:\n(?!###|##)[^\n#>*]+)*)/i);
