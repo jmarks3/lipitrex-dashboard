@@ -1229,7 +1229,7 @@ const interval = setInterval(async () => {
           </>
         )}
 
-        {/* ── REPORTING TAB ── */}
+        {/* ── ASSETS TAB ── */}
         {tab === "reporting" && (
           <>
             <div style={{ marginBottom: "8px" }}>
@@ -1296,6 +1296,75 @@ const interval = setInterval(async () => {
                 ))}
               </div>
             </Card>
+          </>
+        )}
+
+        {/* ── USER MANUAL TAB ── */}
+        {tab === "sop" && (
+          <>
+            <Card style={{ marginBottom: "20px", padding: "20px", borderLeft: `3px solid ${T.gold}` }}>
+              <div style={{ fontSize: "16px", fontWeight: 800, color: T.ink, marginBottom: "4px" }}>Lipitrex Content Intelligence Platform</div>
+              <div style={{ fontSize: "12px", color: T.muted }}>User Manual · Prepared by Josh Marks · Harvest Vitality · 2026</div>
+              <div style={{ fontSize: "13px", color: T.body, lineHeight: 1.7, marginTop: "12px" }}>
+                This manual tells you exactly what the platform is, how it works, and what you need to do each week. The system handles content generation, video production, and carousel creation automatically. Your job is to review, approve, and post. Everything else is handled.
+              </div>
+            </Card>
+
+            {[
+              {
+                title: "1. What This Is",
+                content: `The Lipitrex Content Intelligence Platform is an AI-powered content engine that generates, produces, and publishes TikTok content for Lipitrex Water Pills — 50 posts per week across 5 buyer personas.\n\nVideos (Bait) — reach new buyers, stop the scroll, create first impression. Produced by HeyGen using AI avatars matched to each persona.\n\nCarousels (Anchor) — build trust, educate, convert warm followers into buyers. Produced by PostNitro and exported as ready-to-post images.\n\nEvery piece of content gets a Content ID (e.g. LT-V-001-P1-0611) that tracks it through 7 lifecycle stages from Organic through to Retired. Over time the system learns what works — and the content gets better automatically.`
+              },
+              {
+                title: "2. The Five Buyer Personas",
+                content: `The system generates content for five research-backed buyer profiles that represent Lipitrex's core customers:\n\nP1 — Seniors 55+ (venous insufficiency, heavy legs, afternoon swelling)\nP2 — Weight-Related (chronic swelling, fluid retention, tried everything)\nP3 — Hormonal (perimenopausal women 40–55, hormonal fluid cycles)\nP4 — Nine-to-Five (desk workers, standing jobs, end-of-shift swelling)\nP5 — Rx Side Effects (medication-induced fluid retention, need the meds but hate the swelling)\n\nEach persona has its own AI avatar, voice, pain points, ingredient angle, and content format rotation. The system rotates through all five personas on a 5-week offset cycle so the feed always looks fresh.`
+              },
+              {
+                title: "3. Your Weekly Workflow",
+                content: `Your role is simple: review, approve, post.\n\nStep 1 — Generate content\nOpen dashboard.lipitrex.com. Switch between Video Posts and Carousel Posts using the toggle. Click Generate for each persona — or hit Generate All to run all five at once.\n\nStep 2 — Review the output\nEach card expands to show the full content package: hook, script or slide copy, caption, hashtags, and compliance check. Read it. If something looks off, regenerate.\n\nStep 3 — Send to production\nFor videos: click Send to HeyGen → the video renders automatically in your HeyGen library (5–10 minutes).\nFor carousels: click Send to PostNitro → three slide images generate automatically and appear in the dashboard as thumbnails.\n\nStep 4 — Download and post\nDownload the video from HeyGen or the slide images from the dashboard. Open TikTok, paste the caption, post at the recommended time.\n\nNo design work, no script writing, no editing required.`
+              },
+              {
+                title: "4. How to Post to TikTok",
+                content: `Posting a Video:\n1. Open TikTok app — log into progressivehealth1\n2. Tap the + button at the bottom\n3. Tap Upload → select the video file\n4. Paste the caption and hashtags from the dashboard\n5. Do not add your own music — audio is already in the video\n6. Tap Post\n\nPosting a Carousel:\n1. Open TikTok app — log into progressivehealth1\n2. Tap the + button\n3. Tap Upload → select all three slide images in order (Slide 1 first)\n4. Tap Next → paste the caption and hashtags\n5. Tap Post\n\nNever change the Linktree bio link without coordinating with Josh. Every sale from TikTok needs to go through that link to earn the Amazon Brand Referral Bonus.`
+              },
+              {
+                title: "5. Posting Schedule",
+                content: `The system runs on a 5-persona offset rotation. Each week a different persona leads. Over 5 weeks every persona gets equal prominence.\n\nRecommended posting times (Pacific):\n\n7:00–8:00 AM — Commuters / pre-work scroll\n10:00–11:00 AM — Women's wellness discovery window\n12:00–1:00 PM — Highest cross-demographic traffic\n3:00–4:00 PM — Senior audience active window\n6:00–7:00 PM — Post-work educational content peak\n8:00–9:00 PM — Women's wellness prime engagement\n9:30–10:30 PM — Research-minded night scrollers\n\nVideos (bait) go out during peak scroll times. Carousels (anchor) go out during research windows. Never post two pieces back to back — space them across the day.`
+              },
+              {
+                title: "6. Understanding Your Analytics",
+                content: `TikTok analytics are pulled automatically into the dashboard — you don't need to enter any numbers manually.\n\nThe Insights tab shows:\n\nSignal Score — a weighted score (2s hold 30% + 6s view 40% + save rate 30%) that predicts which content drives purchases. Higher is better.\n\nPersona Performance Ranking — which of your five buyer profiles is resonating most. Double down on the top performer.\n\nBait/Anchor Health — whether your video reach and carousel saves are growing together. If they're not, the anchor carousel formats need revision.\n\nContent Recommendations — the top 3 content combinations to generate more of, and the bottom 3 to revise or replace.\n\nThe longer data accumulates, the smarter the recommendations get. By month 3 the system will know exactly which persona, format, and hook type drives Lipitrex purchases.`
+              },
+              {
+                title: "7. The Content Genome",
+                content: `Every piece of content you generate gets a unique Content ID and attribute tags tracked in the Genome tab.\n\nThe 7 lifecycle stages:\nOrganic — just posted, gathering data\nPaid — promoted with ad spend\nEvergreen — timeless content, no expiration\nCross-Platform — adapted for Instagram or YouTube\nRepurposed — turned into a different format\nTemplated — proven winner, used as a template\nRetired — no longer active\n\nWhen a piece of content consistently performs, advance it to Templated. The Landing Page tab then activates a signal showing how that content's hook language and CTA structure should be applied to your Amazon listing copy.\n\nThis is the compounding layer — your best TikTok content eventually rewrites your Amazon product page in the language your buyers actually use.`
+              },
+              {
+                title: "8. Amazon Attribution & Brand Referral Bonus",
+                content: `Amazon Attribution tracks every sale that comes from TikTok.\n\nEvery click on the Linktree bio link is tracked. Every purchase from that click is recorded. Amazon pays a ~10% Brand Referral Bonus on those sales as a credit against your selling fees.\n\nAt $25 average order value, 100 TikTok-attributed sales = $250 back in fee credits.\n\nTo view your data: log into advertising.amazon.com → Measurement & Reporting → Amazon Attribution.\n\nNever change the Linktree URL without coordinating with Josh. The Attribution tag in that URL is what generates the bonus credits.`
+              },
+              {
+                title: "9. Competitive Intelligence",
+                content: `The system improves using data from two sources: your own post performance and competitor intelligence from TikTok Creative Center.\n\nTo access competitor data:\n1. Log into business.tiktok.com\n2. Navigate to Creative Center\n3. Filter by: Industry = Dietary Supplements, Region = United States\n4. Review top-performing ads — note hook type, CTR, and keyword signals\n\nKey signals to watch: hooks that open with a pain statement outperform product-first hooks. High-performing supplement ads land their hook at second 2, their problem reveal at second 6, and their solution at second 13.\n\nShare findings with Josh — this data feeds the content genome and improves future performance.`
+              },
+              {
+                title: "10. Platform Access & Responsibilities",
+                content: `dashboard.lipitrex.com — managed by Josh. Your action: review and generate content.\nTikTok (progressivehealth1) — managed by both. Your action: post content, monitor comments.\nTikTok Business Center — managed by Josh. Your action: review monthly analytics summary.\nAmazon Seller Central — managed by you. Your action: monitor sales and inventory.\nAmazon Attribution — managed by Josh. Your action: review monthly report from Josh.\nHeyGen — managed by Josh. Your action: none — fully automated.\nPostNitro — managed by Josh. Your action: none — fully automated.\nLinktree — managed by Josh. Your action: do not modify links.\n\nIf something looks wrong with content before posting — reach out to Josh before posting it. If a video doesn't look right, don't post it.\n\nThe goal: Brad reviews, approves, and posts. Everything else is handled.`
+              },
+              {
+                title: "11. Monthly Tool Costs",
+                content: `Anthropic API — ~$15–25/mo (AI content generation, usage-based)\nHeyGen — $29/mo (AI avatar video production)\nPostNitro Creator — $25/mo (carousel design)\nPostNitro Embed API — $10/mo (automated carousel generation)\nNetlify — $9/mo (dashboard hosting)\n\nTotal: ~$88–98/month\n\nAll tool costs are reimbursed separately from the retainer. Amazon Brand Referral Bonus earnings offset a meaningful portion of tool costs automatically.`
+              },
+            ].map((section, i) => (
+              <Card key={i} style={{ marginBottom: "12px", padding: "20px" }}>
+                <div style={{ fontSize: "14px", fontWeight: 700, color: T.gold, marginBottom: "12px" }}>{section.title}</div>
+                <div style={{ fontSize: "13px", color: T.body, lineHeight: 1.8, whiteSpace: "pre-line" }}>{section.content}</div>
+              </Card>
+            ))}
+
+            <div style={{ marginTop: "20px", padding: "16px", background: T.faint, borderRadius: T.radius, border: `1px solid ${T.border}`, textAlign: "center" }}>
+              <div style={{ fontSize: "12px", color: T.muted }}>Lipitrex Content Intelligence Platform · dashboard.lipitrex.com · Prepared by Josh Marks · Harvest Vitality · 2026</div>
+            </div>
           </>
         )}
 
