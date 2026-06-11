@@ -510,10 +510,6 @@ const interval = setInterval(async () => {
     setPostnitroStatus(prev => ({ ...prev, [key]: "error" }));
   }
 }, 3000);
-      }
-    };
-
-    setTimeout(poll, 3000);
 
   } catch (err) {
     setPostnitroStatus(prev => ({ ...prev, [key]: "error" }));
