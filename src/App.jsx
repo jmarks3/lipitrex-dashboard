@@ -265,6 +265,7 @@ export default function LipitrexDashboard() {
   const [heygenConnected, setHeygenConnected] = useState(true);
   const [heygenStatus, setHeygenStatus] = useState({});
   const [postnitroStatus, setPostnitroStatus] = useState({});
+const [postnitroOutputs, setPostnitroOutputs] = useState({});
   const [videoMetrics, setVideoMetrics] = useState(() => {
     const m = {};
     VIDEO_FORMATS.forEach(f => { m[f.id] = {}; PERSONAS.forEach(p => { m[f.id][p.id] = { views: "", saves: "", comments: "", completion: "", hold_2s: "", view_6s: "" }; }); });
