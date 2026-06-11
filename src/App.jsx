@@ -524,6 +524,7 @@ const interval = setInterval(async () => {
     { id: "genome", label: "Genome", emoji: "🌀" },
     { id: "landing", label: "Landing Page", emoji: "🏆" },
     { id: "reporting", label: "Assets", emoji: "🔗" },
+    { id: "sop", label: "User Manual", emoji: "📋" },
   ];
 
   return (
