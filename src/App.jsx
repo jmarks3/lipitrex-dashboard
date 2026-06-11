@@ -1286,7 +1286,7 @@ const interval = setInterval(async () => {
             <Card style={{ padding: "20px" }}>
               <Label>Monthly Cost at Each Stage</Label>
               <div style={{ display: "grid", gridTemplateColumns: "repeat(3, 1fr)", gap: "16px", marginTop: "8px" }}>
-                {[["Now", "$35", "Claude + PostNitro + free tools"], ["With IG + YT", "~$134", "+ Socialinsider"], ["At Scale", "~$235+", "+ NexLev + advanced"]].map(([stage, cost, note]) => (
+                {[["Now", "$88–98", "Claude + PostNitro + HeyGen + Netlify (Anthropic ~$15–25/mo)"], ["With IG + YT", "~$187–197", "+ Socialinsider"], ["At Scale", "~$288+", "+ NexLev + advanced"]].map(([stage, cost, note]) => (
                   <div key={stage} style={{ textAlign: "center", padding: "16px", background: T.faint, borderRadius: T.radiusSm, border: `1px solid ${T.border}` }}>
                     <div style={{ fontSize: "10px", color: T.muted, fontWeight: 700, textTransform: "uppercase", marginBottom: "6px" }}>{stage}</div>
                     <div style={{ fontSize: "24px", fontWeight: 800, color: T.gold }}>{cost}<span style={{ fontSize: "12px", color: T.muted }}>/mo</span></div>
