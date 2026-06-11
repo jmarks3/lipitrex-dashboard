@@ -448,8 +448,9 @@ Make it specific, vivid, and warm. The viewer should feel understood before they
       }
       const headlineMatch = headlineLines.length ? [null, headlineLines.join(" ")] : null;
 
-      const bodyMatch = block.match(/Body Text[:\s*]+(?:\n+)?>\s*([^\n]+(?:\n(?!###|##|>|\*\*)[^\n]+)*)/i) ||
-                        block.match(/Body Text[:\s*]+(?:\n+)?([^\n#>*]+(?:\n(?!###|##)[^\n#>*]+)*)/i);
+      const bodyMatch = block.match(/Body Text[^\n]*\n((?:>[^\n]+\n?)+)/i) ||
+                  block.match(/Body Text[:\s*]+(?:\n+)?>\s*([^\n]+(?:\n(?!###|##|\*\*)[^\n]+)*)/i) ||
+                  block.match(/Body Text[:\s*]+(?:\n+)?([^\n#>*]+(?:\n(?!###|##)[^\n#>*]+)*)/i);
 
       const heading = headlineMatch ? headlineMatch[1].replace(/[*">]/g, "").trim() : `Slide ${i + 1}`;
       const description = bodyMatch ? bodyMatch[1].replace(/[*>]/g, "").trim() : persona.angle;
