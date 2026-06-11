@@ -725,16 +725,44 @@ Make it specific, vivid, and warm. The viewer should feel understood before they
                     )}
 
                     {result && isExpanded && (
-                      <div style={{
-                        padding: "20px", fontSize: "13px", lineHeight: 1.8,
-                        color: T.body, whiteSpace: "pre-wrap",
-                        maxHeight: "500px", overflowY: "auto",
-                        borderTop: `1px solid ${T.border}`,
-                      }}>
-                        {result}
-                      </div>
-                    )}
-                  </Card>
+  <div style={{
+    padding: "20px", fontSize: "13px", lineHeight: 1.8,
+    color: T.body, whiteSpace: "pre-wrap",
+    maxHeight: "500px", overflowY: "auto",
+    borderTop: `1px solid ${T.border}`,
+  }}>
+    {result}
+  </div>
+)}
+{postnitroOutputs[`postnitro_${p.id}`] && (
+  <div style={{ padding: "16px 20px", borderTop: `1px solid ${T.border}` }}>
+    <div style={{ fontSize: "11px", fontWeight: 700, color: T.muted, textTransform: "uppercase", letterSpacing: "0.08em", marginBottom: "12px" }}>
+      Generated Carousel Slides
+    </div>
+    <div style={{ display: "flex", gap: "10px", flexWrap: "wrap" }}>
+      {postnitroOutputs[`postnitro_${p.id}`].map((url, i) => (
+        <a key={i} href={url} target="_blank" rel="noopener noreferrer" style={{ textDecoration: "none" }}>
+          <img
+            src={url}
+            alt={`Slide ${i + 1}`}
+            style={{
+              width: "120px",
+              height: "213px",
+              objectFit: "cover",
+              borderRadius: T.radiusSm,
+              border: `1px solid ${T.border}`,
+              cursor: "pointer",
+            }}
+          />
+          <div style={{ fontSize: "10px", color: T.muted, textAlign: "center", marginTop: "4px" }}>
+            Slide {i + 1} ↗
+          </div>
+        </a>
+      ))}
+    </div>
+  </div>
+)}
+</Card>
                 );
               })}
             </div>
