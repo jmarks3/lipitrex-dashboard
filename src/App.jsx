@@ -1240,7 +1240,9 @@ const interval = setInterval(async () => {
                 { name: "Amazon Attribution", desc: "Tracks TikTok bio link clicks through to Amazon purchases. ASIN: B08B9SH5XH.", url: "https://advertising.amazon.com", cost: "Free" },
                 { name: "TikTok Creative Center", desc: "Free competitor intelligence — search competing supplement brands' ad content.", url: "https://ads.tiktok.com/business/creativecenter", cost: "Free" },
                 { name: "PostNitro", desc: "Automated carousel generation. Triggered directly from the Generate tab when Carousel Posts mode is active.", url: "https://postnitro.ai", cost: "$25 + $10 API/mo" },
-              ].map(tool => (
+                { name: "HeyGen", desc: "AI avatar video production. Five personas mapped to five avatars. Videos render in HeyGen library after 'Send to HeyGen' — Brad downloads and posts to TikTok.", url: "https://app.heygen.com", cost: "$29/mo + API credits" },
+                { name: "Anthropic Console", desc: "Content intelligence agent. Manages the system prompt, offset rotation logic, and persona tone guides that power every generation.", url: "https://console.anthropic.com", cost: "Usage-based" },
+                { name: "Netlify", desc: "Hosts the dashboard at dashboard.lipitrex.com. Handles the HeyGen serverless function and all frontend deploys.", url: "https://app.netlify.com", cost: "$9/mo" },              ].map(tool => (
                 <Card key={tool.name} style={{ padding: "16px" }}>
                   <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
                     <div style={{ flex: 1 }}>
