@@ -484,25 +484,32 @@ Make it specific, vivid, and warm. The viewer should feel understood before they
     const embedPostId = initData.embedPostId;
 
     // Step 2 — poll from frontend
-    let attempts = 0;
-    const poll = async () => {
-      if (attempts >= 20) {
-        setPostnitroStatus(prev => ({ ...prev, [key]: "error" }));
-        return;
+let attempts = 0;
+const interval = setInterval(async () => {
+  attempts++;
+  if (attempts > 20) {
+    clearInterval(interval);
+    setPostnitroStatus(prev => ({ ...prev, [key]: "error" }));
+    return;
+  }
+  try {
+    const statusRes = await fetch(`https://lipitrex-dashboard.vercel.app/api/postnitro-status?embedPostId=${embedPostId}`);
+    const statusData = await statusRes.json();
+    if (statusData.status === "COMPLETED") {
+      clearInterval(interval);
+      setPostnitroStatus(prev => ({ ...prev, [key]: "success" }));
+      if (statusData.images?.length) {
+        setPostnitroOutputs(prev => ({ ...prev, [key]: statusData.images }));
       }
-      attempts++;
-      const statusRes = await fetch(`https://lipitrex-dashboard.vercel.app/api/postnitro-status?embedPostId=${embedPostId}`);
-      const statusData = await statusRes.json();
-
-      if (statusData.status === "COMPLETED") {
-        setPostnitroStatus(prev => ({ ...prev, [key]: "success" }));
-        if (statusData.images?.length) {
-          setPostnitroOutputs(prev => ({ ...prev, [key]: statusData.images }));
-        }
-      } else if (statusData.status === "FAILED") {
-        setPostnitroStatus(prev => ({ ...prev, [key]: "error" }));
-      } else {
-        setTimeout(poll, 3000);
+    } else if (statusData.status === "FAILED") {
+      clearInterval(interval);
+      setPostnitroStatus(prev => ({ ...prev, [key]: "error" }));
+    }
+  } catch {
+    clearInterval(interval);
+    setPostnitroStatus(prev => ({ ...prev, [key]: "error" }));
+  }
+}, 3000);
       }
     };
 
