@@ -278,12 +278,45 @@ const [postnitroOutputs, setPostnitroOutputs] = useState({});
   });
   const [trackType, setTrackType] = useState("video");
   const [trackFormat, setTrackFormat] = useState(VIDEO_FORMATS[0].id);
-  const [genomeFilter, setGenomeFilter] = useState("all");
+  const [genomeDateRange, setGenomeDateRange] = useState("all");
+  const [genomePersona, setGenomePersona] = useState("all");
+  const [genomeType, setGenomeType] = useState("all");
+  const [genomeFormat, setGenomeFormat] = useState("all");
+  const [genomeStage, setGenomeStage] = useState("all");
 
   const ALL_FORMATS = [...VIDEO_FORMATS, ...CAROUSEL_FORMATS];
 
+  // Shared style for the Genome filter-bar dropdowns.
+  const genomeSelectStyle = {
+    padding: "7px 10px", borderRadius: T.radiusXs,
+    border: `1px solid ${T.border}`, fontSize: "12px", fontWeight: 600,
+    color: T.body, background: T.white, cursor: "pointer",
+    fontFamily: "inherit", outline: "none",
+  };
+
+  // Apply the Genome tab filter bar selections to the content log.
+  const genomeFiltered = contentLog.filter(item => {
+    if (genomePersona !== "all" && item.persona !== genomePersona) return false;
+    if (genomeType !== "all" && item.type !== genomeType) return false;
+    if (genomeFormat !== "all" && item.format !== genomeFormat) return false;
+    if (genomeStage !== "all" && item.stage !== genomeStage) return false;
+    if (genomeDateRange !== "all") {
+      let cutoff;
+      if (genomeDateRange === "today") {
+        const d = new Date();
+        d.setHours(0, 0, 0, 0);
+        cutoff = d.getTime();
+      } else {
+        const days = genomeDateRange === "7" ? 7 : 30;
+        cutoff = Date.now() - days * 86400000;
+      }
+      if (!(item.ts >= cutoff)) return false;
+    }
+    return true;
+  });
+
   // Build a contentLog entry (with all derived display fields) from core attributes.
-  const buildEntry = ({ id, persona, format, type, offset, stage, date }) => ({
+  const buildEntry = ({ id, persona, format, type, offset, stage, date, ts }) => ({
     id,
     persona: persona.name,
     personaId: persona.id,
@@ -295,6 +328,7 @@ const [postnitroOutputs, setPostnitroOutputs] = useState({});
     offset,
     stage,
     date,
+    ts: ts ?? Date.now(),
     attributes: {
       contentType: type,
       persona: persona.name,
@@ -349,6 +383,7 @@ const [postnitroOutputs, setPostnitroOutputs] = useState({});
           offset: row.offset_week,
           stage: latestStage[row.id] || "Organic",
           date: row.created_at ? new Date(row.created_at).toLocaleDateString() : new Date().toLocaleDateString(),
+          ts: row.created_at ? new Date(row.created_at).getTime() : Date.now(),
         });
       });
 
@@ -472,6 +507,7 @@ Make it specific, vivid, and warm. The viewer should feel understood before they
         offset: currentOffset,
         stage: "Organic",
         date: new Date().toLocaleDateString(),
+        ts: Date.now(),
       });
       setContentLog(prev => [entry, ...prev]);
       setIdCounter(prev => prev + 1);
@@ -1203,17 +1239,72 @@ const interval = setInterval(async () => {
               </div>
             </Card>
 
-            <div style={{ display: "flex", gap: "6px", marginBottom: "16px", flexWrap: "wrap" }}>
-              {["all", ...CONTENT_STAGES].map(s => (
-                <button key={s} onClick={() => setGenomeFilter(s)} style={{
-                  padding: "5px 12px", borderRadius: "20px",
-                  border: `1px solid ${genomeFilter === s ? T.gold : T.border}`,
-                  background: genomeFilter === s ? T.goldLight : T.white,
-                  color: genomeFilter === s ? T.goldDark : T.muted,
-                  fontSize: "11px", fontWeight: 600, cursor: "pointer",
-                  textTransform: "capitalize",
-                }}>{s === "all" ? "All Content" : s}</button>
-              ))}
+            <div style={{
+              display: "flex", flexWrap: "wrap", alignItems: "flex-end", gap: "14px",
+              background: T.white, border: `1px solid ${T.border}`, borderRadius: T.radius,
+              boxShadow: T.shadow, padding: "14px 16px", marginBottom: "16px",
+            }}>
+              {/* Date range */}
+              <div>
+                <Label>Date Range</Label>
+                <select value={genomeDateRange} onChange={e => setGenomeDateRange(e.target.value)} style={genomeSelectStyle}>
+                  <option value="all">All time</option>
+                  <option value="today">Today</option>
+                  <option value="7">Last 7 days</option>
+                  <option value="30">Last 30 days</option>
+                </select>
+              </div>
+
+              {/* Persona */}
+              <div>
+                <Label>Persona</Label>
+                <select value={genomePersona} onChange={e => setGenomePersona(e.target.value)} style={genomeSelectStyle}>
+                  <option value="all">All Personas</option>
+                  {PERSONAS.map(p => <option key={p.id} value={p.name}>{p.name}</option>)}
+                </select>
+              </div>
+
+              {/* Content type toggle */}
+              <div>
+                <Label>Content Type</Label>
+                <div style={{ display: "flex", gap: "4px" }}>
+                  {[["all", "All"], ["video", "Video"], ["carousel", "Carousel"]].map(([val, lbl]) => (
+                    <button key={val} onClick={() => setGenomeType(val)} style={{
+                      padding: "7px 12px", borderRadius: T.radiusXs,
+                      border: `1px solid ${genomeType === val ? T.gold : T.border}`,
+                      background: genomeType === val ? T.goldLight : T.white,
+                      color: genomeType === val ? T.goldDark : T.muted,
+                      fontSize: "12px", fontWeight: 600, cursor: "pointer",
+                    }}>{lbl}</button>
+                  ))}
+                </div>
+              </div>
+
+              {/* Format */}
+              <div>
+                <Label>Format</Label>
+                <select value={genomeFormat} onChange={e => setGenomeFormat(e.target.value)} style={genomeSelectStyle}>
+                  <option value="all">All Formats</option>
+                  {ALL_FORMATS.map(f => <option key={f.id} value={f.label}>{f.label}</option>)}
+                </select>
+              </div>
+
+              {/* Stage */}
+              <div>
+                <Label>Stage</Label>
+                <select value={genomeStage} onChange={e => setGenomeStage(e.target.value)} style={genomeSelectStyle}>
+                  <option value="all">All Stages</option>
+                  {CONTENT_STAGES.map(s => <option key={s} value={s}>{s}</option>)}
+                </select>
+              </div>
+
+              {/* Filtered count */}
+              <div style={{ marginLeft: "auto", textAlign: "right" }}>
+                <div style={{ fontSize: "13px", fontWeight: 700, color: T.gold }}>
+                  Showing {genomeFiltered.length} of {contentLog.length}
+                </div>
+                <div style={{ fontSize: "11px", color: T.subtle, marginTop: "2px" }}>content IDs</div>
+              </div>
             </div>
 
             {contentLog.length === 0 ? (
@@ -1222,10 +1313,15 @@ const interval = setInterval(async () => {
                 <div style={{ fontSize: "14px", fontWeight: 600, color: T.ink, marginBottom: "6px" }}>No content IDs yet</div>
                 <div style={{ fontSize: "12px", color: T.muted }}>Generate posts in the Generate tab — each one receives a unique ID and attribute tags automatically.</div>
               </Card>
+            ) : genomeFiltered.length === 0 ? (
+              <Card style={{ padding: "40px", textAlign: "center" }}>
+                <div style={{ fontSize: "32px", marginBottom: "12px" }}>🔍</div>
+                <div style={{ fontSize: "14px", fontWeight: 600, color: T.ink, marginBottom: "6px" }}>No content matches these filters</div>
+                <div style={{ fontSize: "12px", color: T.muted }}>Try widening the date range or clearing a filter to see more content IDs.</div>
+              </Card>
             ) : (
               <div style={{ display: "flex", flexDirection: "column", gap: "10px" }}>
-                {contentLog
-                  .filter(item => genomeFilter === "all" || item.stage === genomeFilter)
+                {genomeFiltered
                   .map(item => (
                     <Card key={item.id} style={{ padding: "16px" }}>
                       <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start", flexWrap: "wrap", gap: "10px", marginBottom: "12px" }}>
