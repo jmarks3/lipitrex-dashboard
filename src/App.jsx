@@ -317,11 +317,11 @@ const [postnitroOutputs, setPostnitroOutputs] = useState({});
   // Load existing content + latest lifecycle stage from Netlify DB on mount.
   useEffect(() => {
     const load = async () => {
-      let posts, events;
+      let posts, events, carousels;
       try {
         const res = await fetch("/api/content");
         if (!res.ok) return;
-        ({ posts, events } = await res.json());
+        ({ posts, events, carousels } = await res.json());
       } catch {
         return;
       }
@@ -354,6 +354,20 @@ const [postnitroOutputs, setPostnitroOutputs] = useState({});
 
       setContentLog(entries);
       setIdCounter(posts.length + 1);
+
+      // Restore PostNitro carousel thumbnails. Keyed per persona (most recent
+      // carousel wins) to mirror the postnitro_<personaId> state shape.
+      const sortedCarousels = (carousels || []).slice().sort(
+        (a, b) => new Date(b.created_at || 0) - new Date(a.created_at || 0)
+      );
+      const restoredOutputs = {};
+      sortedCarousels.forEach(row => {
+        const key = `postnitro_${row.persona_id}`;
+        if (!(key in restoredOutputs) && Array.isArray(row.image_urls) && row.image_urls.length) {
+          restoredOutputs[key] = row.image_urls;
+        }
+      });
+      if (Object.keys(restoredOutputs).length) setPostnitroOutputs(restoredOutputs);
     };
     load();
   }, []);
@@ -586,6 +600,13 @@ Make it specific, vivid, and warm. The viewer should feel understood before they
 
     const embedPostId = initData.embedPostId;
 
+    // Resolve the persisted content ID for this carousel so the saved row can
+    // satisfy the carousel_outputs -> content_posts foreign key.
+    const logEntry = contentLog.find(
+      item => item.personaId === persona.id && item.type === "carousel"
+    );
+    const postId = genomeId || logEntry?.id;
+
     // Step 2 — poll from frontend
 let attempts = 0;
 const interval = setInterval(async () => {
@@ -603,6 +624,28 @@ const interval = setInterval(async () => {
       setPostnitroStatus(prev => ({ ...prev, [key]: "success" }));
       if (statusData.images?.length) {
         setPostnitroOutputs(prev => ({ ...prev, [key]: statusData.images }));
+
+        // Persist the slide URLs to Netlify DB so thumbnails survive a refresh.
+        if (postId) {
+          try {
+            await fetch("/api/content", {
+              method: "POST",
+              headers: { "Content-Type": "application/json" },
+              body: JSON.stringify({
+                kind: "carousel",
+                post_id: postId,
+                persona_id: persona.id,
+                embed_post_id: embedPostId,
+                slide_1_url: statusData.images[0],
+                slide_2_url: statusData.images[1],
+                slide_3_url: statusData.images[2],
+                generated_at: new Date().toISOString(),
+              }),
+            });
+          } catch {
+            // Non-blocking — the thumbnails already render from local state.
+          }
+        }
       }
     } else if (statusData.status === "FAILED") {
       clearInterval(interval);
