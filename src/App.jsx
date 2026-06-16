@@ -1388,10 +1388,13 @@ const interval = setInterval(async () => {
                 { name: "PostNitro", desc: "Automated carousel generation. Triggered directly from the Generate tab when Carousel Posts mode is active.", url: "https://postnitro.ai", cost: "$25 + $10 API/mo" },
                 { name: "HeyGen", desc: "AI avatar video production. Five personas mapped to five avatars. Videos render in HeyGen library after 'Send to HeyGen' — Brad downloads and posts to TikTok.", url: "https://app.heygen.com", cost: "$29/mo + API credits" },
                 { name: "Anthropic Console", desc: "Content intelligence agent. Manages the system prompt, offset rotation logic, and persona tone guides that power every generation.", url: "https://console.anthropic.com", cost: "Usage-based" },
-                { name: "Netlify", desc: "Hosts the dashboard at dashboard.lipitrex.com. Handles the HeyGen serverless function and all frontend deploys.", url: "https://app.netlify.com", cost: "$9/mo" },              ].map(tool => (
+                { name: "Netlify", desc: "Hosts the dashboard at dashboard.lipitrex.com. Handles the HeyGen serverless function and all frontend deploys.", url: "https://app.netlify.com", cost: "$9/mo" },
                 { name: "Netlify DB", desc: "Managed Postgres database. Stores all generated content IDs, genome lifecycle stages, carousel outputs, and performance metrics. Data persists across sessions and is isolated per deploy preview.", url: "https://app.netlify.com", cost: "Free" },
                 { name: "Sentry", desc: "Error monitoring for frontend and serverless functions. Captures unhandled errors with full context so issues are caught before Brad notices them.", url: "https://sentry.io", cost: "Free tier" },
                 { name: "Linktree", desc: "Bio link hub for TikTok. Routes all traffic from @progressivehealth bio link through Amazon Attribution tags to the Lipitrex listing. Do not modify links without coordinating with Josh.", url: "https://linktr.ee", cost: "Free" },
+              ].map(tool => (
+                <Card key={tool.name} style={{ padding: "16px" }}>
+                  <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
                     <div style={{ flex: 1 }}>
                       <div style={{ display: "flex", alignItems: "center", gap: "8px", marginBottom: "4px" }}>
                         <span style={{ fontSize: "13px", fontWeight: 700 }}>{tool.name}</span>
