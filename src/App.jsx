@@ -1382,6 +1382,7 @@ const interval = setInterval(async () => {
             </div>
             <div style={{ display: "flex", flexDirection: "column", gap: "10px", marginBottom: "24px" }}>
               {[
+                { name: "GitHub", desc: "Source code repository for the Lipitrex dashboard. All code changes deploy automatically to Netlify from the main branch. Repo: jmarks3/lipitrex-dashboard.", url: "https://github.com/jmarks3/lipitrex-dashboard", cost: "Free" },                
                 { name: "TikTok Studio", desc: "Native analytics — views, saves, follower growth, watch time, completion rate.", url: "https://studio.tiktok.com", cost: "Free" },
                 { name: "Amazon Attribution", desc: "Tracks TikTok bio link clicks through to Amazon purchases. ASIN: B08B9SH5XH.", url: "https://advertising.amazon.com", cost: "Free" },
                 { name: "TikTok Creative Center", desc: "Free competitor intelligence — search competing supplement brands' ad content.", url: "https://ads.tiktok.com/business/creativecenter", cost: "Free" },
