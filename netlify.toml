@@ -2,6 +2,10 @@
   command = "npm run build"
   publish = "dist"
 
+[context.production.environment]
+  VITE_SUPABASE_URL = "https://ovmyaouiskbsbxyezijx.supabase.co"
+  VITE_SUPABASE_ANON_KEY = "sb_publishable_IxAkYaPuksJQYoQDA_pv7GpjIz"
+
 [functions]
   directory = "netlify/functions"
 

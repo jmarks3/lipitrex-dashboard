@@ -1,4 +1,5 @@
 import { useState, useRef, useEffect } from "react";
+import supabase from "./supabase";
 
 // ─── DESIGN TOKENS ───────────────────────────────────────
 const T = {
@@ -280,6 +281,89 @@ const [postnitroOutputs, setPostnitroOutputs] = useState({});
   const [trackFormat, setTrackFormat] = useState(VIDEO_FORMATS[0].id);
   const [genomeFilter, setGenomeFilter] = useState("all");
 
+  const ALL_FORMATS = [...VIDEO_FORMATS, ...CAROUSEL_FORMATS];
+
+  // Build a contentLog entry (with all derived display fields) from core attributes.
+  const buildEntry = ({ id, persona, format, type, offset, stage, date }) => ({
+    id,
+    persona: persona.name,
+    personaId: persona.id,
+    personaColor: persona.color,
+    personaEmoji: persona.emoji,
+    format: format.label,
+    formatEmoji: format.emoji,
+    type,
+    offset,
+    stage,
+    date,
+    attributes: {
+      contentType: type,
+      persona: persona.name,
+      format: format.label,
+      metric: format.metric,
+      length: persona.length,
+      compliance: persona.id === 5 ? "Required" : "None",
+      offset: `${offset}/5`,
+      platform: "TikTok",
+    },
+  });
+
+  // Extract a markdown section (e.g. HOOK, CAPTION) from generated output.
+  const extractSection = (text, header) => {
+    const re = new RegExp(`##\\s*${header}\\s*\\n([\\s\\S]*?)(?=\\n##\\s|$)`, "i");
+    const m = text.match(re);
+    return m ? m[1].trim() : "";
+  };
+
+  // Load existing content + latest lifecycle stage from Supabase on mount.
+  useEffect(() => {
+    const load = async () => {
+      const { data: posts, error } = await supabase.from("content_posts").select("*");
+      if (error || !posts) return;
+
+      const { data: events } = await supabase.from("genome_events").select("*");
+      const sortedEvents = (events || []).slice().sort(
+        (a, b) => new Date(b.created_at || 0) - new Date(a.created_at || 0)
+      );
+      const latestStage = {};
+      sortedEvents.forEach(e => {
+        if (!(e.post_id in latestStage)) latestStage[e.post_id] = e.stage;
+      });
+
+      const sortedPosts = posts.slice().sort(
+        (a, b) => new Date(b.created_at || 0) - new Date(a.created_at || 0)
+      );
+      const entries = sortedPosts.map(row => {
+        const persona = PERSONAS.find(p => p.id === row.persona_id) || PERSONAS[0];
+        const format = ALL_FORMATS.find(f => f.id === row.format_id) || ALL_FORMATS[0];
+        return buildEntry({
+          id: row.id,
+          persona,
+          format,
+          type: row.content_type,
+          offset: row.offset_week,
+          stage: latestStage[row.id] || "Organic",
+          date: row.created_at ? new Date(row.created_at).toLocaleDateString() : new Date().toLocaleDateString(),
+        });
+      });
+
+      setContentLog(entries);
+      setIdCounter(posts.length + 1);
+    };
+    load();
+  }, []);
+
+  // Record a lifecycle stage transition: update locally and append to genome_events.
+  const updateStage = async (id, stage) => {
+    setContentLog(prev => prev.map(item => (item.id === id ? { ...item, stage } : item)));
+    try {
+      await supabase.from("genome_events").insert({ post_id: id, stage });
+    } catch (e) {
+      // Non-blocking — the local UI already reflects the new stage.
+    }
+  };
+
+
   const getOffsetDateRange = (offset) => {
     const weekStart = new Date(ANCHOR);
     weekStart.setDate(ANCHOR.getDate() + ((offset - 1 + Math.floor((today - ANCHOR) / (7 * 24 * 60 * 60 * 1000)) - ((Math.floor((today - ANCHOR) / (7 * 24 * 60 * 60 * 1000))) % 5)) * 7));
@@ -357,31 +441,35 @@ Make it specific, vivid, and warm. The viewer should feel understood before they
       const text = data.content?.map(b => b.text || "").join("") || "Error generating content.";
       setResults(prev => ({ ...prev, [key]: text }));
 
-      const entry = {
+      const entry = buildEntry({
         id: newId,
-        persona: persona.name,
-        personaId: persona.id,
-        personaColor: persona.color,
-        personaEmoji: persona.emoji,
-        format: format.label,
-        formatEmoji: format.emoji,
+        persona,
+        format,
         type,
         offset: currentOffset,
         stage: "Organic",
         date: new Date().toLocaleDateString(),
-        attributes: {
-          contentType: type,
-          persona: persona.name,
-          format: format.label,
-          metric: format.metric,
-          length: persona.length,
-          compliance: persona.id === 5 ? "Required" : "None",
-          offset: `${currentOffset}/5`,
-          platform: "TikTok",
-        }
-      };
+      });
       setContentLog(prev => [entry, ...prev]);
       setIdCounter(prev => prev + 1);
+
+      // Persist the generated post to Supabase.
+      try {
+        await supabase.from("content_posts").insert({
+          id: newId,
+          persona_id: persona.id,
+          content_type: type,
+          format_id: format.id,
+          format_label: format.label,
+          offset_week: currentOffset,
+          platform: "TikTok",
+          hook: extractSection(text, "HOOK"),
+          caption: extractSection(text, "CAPTION"),
+          full_output: text,
+        });
+      } catch (dbErr) {
+        // Non-blocking — the post is already shown in the local content log.
+      }
 
     } catch (e) {
       setResults(prev => ({ ...prev, [key]: "Error — please retry." }));
