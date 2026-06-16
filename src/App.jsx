@@ -1,5 +1,4 @@
 import { useState, useRef, useEffect } from "react";
-import supabase from "./supabase";
 
 // ─── DESIGN TOKENS ───────────────────────────────────────
 const T = {
@@ -315,13 +314,19 @@ const [postnitroOutputs, setPostnitroOutputs] = useState({});
     return m ? m[1].trim() : "";
   };
 
-  // Load existing content + latest lifecycle stage from Supabase on mount.
+  // Load existing content + latest lifecycle stage from Netlify DB on mount.
   useEffect(() => {
     const load = async () => {
-      const { data: posts, error } = await supabase.from("content_posts").select("*");
-      if (error || !posts) return;
+      let posts, events;
+      try {
+        const res = await fetch("/api/content");
+        if (!res.ok) return;
+        ({ posts, events } = await res.json());
+      } catch {
+        return;
+      }
+      if (!posts) return;
 
-      const { data: events } = await supabase.from("genome_events").select("*");
       const sortedEvents = (events || []).slice().sort(
         (a, b) => new Date(b.created_at || 0) - new Date(a.created_at || 0)
       );
@@ -357,7 +362,11 @@ const [postnitroOutputs, setPostnitroOutputs] = useState({});
   const updateStage = async (id, stage) => {
     setContentLog(prev => prev.map(item => (item.id === id ? { ...item, stage } : item)));
     try {
-      await supabase.from("genome_events").insert({ post_id: id, stage });
+      await fetch("/api/content", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ kind: "event", post_id: id, stage }),
+      });
     } catch (e) {
       // Non-blocking — the local UI already reflects the new stage.
     }
@@ -453,19 +462,24 @@ Make it specific, vivid, and warm. The viewer should feel understood before they
       setContentLog(prev => [entry, ...prev]);
       setIdCounter(prev => prev + 1);
 
-      // Persist the generated post to Supabase.
+      // Persist the generated post to Netlify DB.
       try {
-        await supabase.from("content_posts").insert({
-          id: newId,
-          persona_id: persona.id,
-          content_type: type,
-          format_id: format.id,
-          format_label: format.label,
-          offset_week: currentOffset,
-          platform: "TikTok",
-          hook: extractSection(text, "HOOK"),
-          caption: extractSection(text, "CAPTION"),
-          full_output: text,
+        await fetch("/api/content", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
+            kind: "post",
+            id: newId,
+            persona_id: persona.id,
+            content_type: type,
+            format_id: format.id,
+            format_label: format.label,
+            offset_week: currentOffset,
+            platform: "TikTok",
+            hook: extractSection(text, "HOOK"),
+            caption: extractSection(text, "CAPTION"),
+            full_output: text,
+          }),
         });
       } catch (dbErr) {
         // Non-blocking — the post is already shown in the local content log.
