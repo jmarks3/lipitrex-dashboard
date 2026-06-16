@@ -11,6 +11,11 @@
   </head>
   <body>
     <div id="root"></div>
+    <!--
+      Authentication is handled by the headless @netlify/identity library inside
+      the React app (see src/AuthGate.jsx). No netlify-identity-widget.js script
+      tag is needed here — the widget is the legacy approach and is not used.
+    -->
     <script type="module" src="/src/main.jsx"></script>
   </body>
 </html>
