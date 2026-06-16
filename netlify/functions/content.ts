@@ -1,20 +1,22 @@
 import type { Config } from "@netlify/functions";
 import { desc } from "drizzle-orm";
 import { db } from "../../db/index.js";
-import { content_posts, genome_events } from "../../db/schema.js";
+import { carousel_outputs, content_posts, genome_events } from "../../db/schema.js";
 
 // Data API backing the dashboard. Replaces the former direct Supabase client.
-//   GET  /api/content            -> { posts, events }
-//   POST /api/content  (post)    -> insert a generated content package
-//   POST /api/content  (event)   -> append a lifecycle stage transition
+//   GET  /api/content            -> { posts, events, carousels }
+//   POST /api/content  (post)     -> insert a generated content package
+//   POST /api/content  (event)    -> append a lifecycle stage transition
+//   POST /api/content  (carousel) -> store PostNitro carousel slide images
 export default async (req: Request) => {
   try {
     if (req.method === "GET") {
-      const [posts, events] = await Promise.all([
+      const [posts, events, carousels] = await Promise.all([
         db.select().from(content_posts).orderBy(desc(content_posts.created_at)),
         db.select().from(genome_events).orderBy(desc(genome_events.created_at)),
+        db.select().from(carousel_outputs).orderBy(desc(carousel_outputs.created_at)),
       ]);
-      return Response.json({ posts, events });
+      return Response.json({ posts, events, carousels });
     }
 
     if (req.method === "POST") {
@@ -43,6 +45,26 @@ export default async (req: Request) => {
         const [row] = await db
           .insert(genome_events)
           .values({ post_id: body.post_id, stage: body.stage })
+          .returning();
+        return Response.json(row, { status: 201 });
+      }
+
+      if (body.kind === "carousel") {
+        const image_urls = [
+          body.slide_1_url,
+          body.slide_2_url,
+          body.slide_3_url,
+        ].filter(Boolean);
+        const [row] = await db
+          .insert(carousel_outputs)
+          .values({
+            post_id: body.post_id,
+            persona_id: body.persona_id,
+            embed_post_id: body.embed_post_id,
+            image_urls,
+            status: "COMPLETED",
+            created_at: body.generated_at ? new Date(body.generated_at) : undefined,
+          })
           .returning();
         return Response.json(row, { status: 201 });
       }
