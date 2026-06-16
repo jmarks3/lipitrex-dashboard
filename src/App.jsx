@@ -283,6 +283,9 @@ const [postnitroOutputs, setPostnitroOutputs] = useState({});
   const [genomeType, setGenomeType] = useState("all");
   const [genomeFormat, setGenomeFormat] = useState("all");
   const [genomeStage, setGenomeStage] = useState("all");
+  const [genomeExpanded, setGenomeExpanded] = useState(null);
+  const [genomeOutputs, setGenomeOutputs] = useState({});
+  const [genomeFetching, setGenomeFetching] = useState({});
 
   const ALL_FORMATS = [...VIDEO_FORMATS, ...CAROUSEL_FORMATS];
 
@@ -316,7 +319,7 @@ const [postnitroOutputs, setPostnitroOutputs] = useState({});
   });
 
   // Build a contentLog entry (with all derived display fields) from core attributes.
-  const buildEntry = ({ id, persona, format, type, offset, stage, date, ts }) => ({
+  const buildEntry = ({ id, persona, format, type, offset, stage, date, ts, fullOutput }) => ({
     id,
     persona: persona.name,
     personaId: persona.id,
@@ -329,6 +332,7 @@ const [postnitroOutputs, setPostnitroOutputs] = useState({});
     stage,
     date,
     ts: ts ?? Date.now(),
+    fullOutput: fullOutput ?? null,
     attributes: {
       contentType: type,
       persona: persona.name,
@@ -384,6 +388,7 @@ const [postnitroOutputs, setPostnitroOutputs] = useState({});
           stage: latestStage[row.id] || "Organic",
           date: row.created_at ? new Date(row.created_at).toLocaleDateString() : new Date().toLocaleDateString(),
           ts: row.created_at ? new Date(row.created_at).getTime() : Date.now(),
+          fullOutput: row.full_output ?? null,
         });
       });
 
@@ -418,6 +423,34 @@ const [postnitroOutputs, setPostnitroOutputs] = useState({});
       });
     } catch (e) {
       // Non-blocking — the local UI already reflects the new stage.
+    }
+  };
+
+  // Toggle a Genome content card open/closed. On open, lazily fetch full_output
+  // from /api/content (matched by content ID) when it isn't already loaded.
+  const toggleGenomeCard = async (item) => {
+    if (genomeExpanded === item.id) {
+      setGenomeExpanded(null);
+      return;
+    }
+    setGenomeExpanded(item.id);
+
+    if (item.fullOutput || genomeOutputs[item.id] !== undefined) return;
+
+    setGenomeFetching(prev => ({ ...prev, [item.id]: true }));
+    try {
+      const res = await fetch("/api/content");
+      if (res.ok) {
+        const { posts } = await res.json();
+        const row = (posts || []).find(p => p.id === item.id);
+        setGenomeOutputs(prev => ({ ...prev, [item.id]: row?.full_output || "" }));
+      } else {
+        setGenomeOutputs(prev => ({ ...prev, [item.id]: "" }));
+      }
+    } catch {
+      setGenomeOutputs(prev => ({ ...prev, [item.id]: "" }));
+    } finally {
+      setGenomeFetching(prev => ({ ...prev, [item.id]: false }));
     }
   };
 
@@ -508,6 +541,7 @@ Make it specific, vivid, and warm. The viewer should feel understood before they
         stage: "Organic",
         date: new Date().toLocaleDateString(),
         ts: Date.now(),
+        fullOutput: text,
       });
       setContentLog(prev => [entry, ...prev]);
       setIdCounter(prev => prev + 1);
@@ -1322,9 +1356,16 @@ const interval = setInterval(async () => {
             ) : (
               <div style={{ display: "flex", flexDirection: "column", gap: "10px" }}>
                 {genomeFiltered
-                  .map(item => (
+                  .map(item => {
+                    const isOpen = genomeExpanded === item.id;
+                    const fullOutput = item.fullOutput ?? genomeOutputs[item.id];
+                    const isFetching = genomeFetching[item.id];
+                    return (
                     <Card key={item.id} style={{ padding: "16px" }}>
-                      <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start", flexWrap: "wrap", gap: "10px", marginBottom: "12px" }}>
+                      <div
+                        onClick={() => toggleGenomeCard(item)}
+                        style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start", flexWrap: "wrap", gap: "10px", marginBottom: "12px", cursor: "pointer" }}
+                      >
                         <div style={{ display: "flex", alignItems: "center", gap: "10px" }}>
                           <span style={{ fontSize: "18px" }}>{item.personaEmoji}</span>
                           <div>
@@ -1332,9 +1373,12 @@ const interval = setInterval(async () => {
                             <div style={{ fontSize: "11px", color: T.muted, marginTop: "2px" }}>{item.persona} · {item.format} · {item.date}</div>
                           </div>
                         </div>
-                        <Badge color={item.type === "video" ? T.blue : T.gold} bg={item.type === "video" ? T.blueLight : T.goldLight}>
-                          {item.type === "video" ? "🎬 Video" : "🖼️ Carousel"}
-                        </Badge>
+                        <div style={{ display: "flex", alignItems: "center", gap: "10px" }}>
+                          <Badge color={item.type === "video" ? T.blue : T.gold} bg={item.type === "video" ? T.blueLight : T.goldLight}>
+                            {item.type === "video" ? "🎬 Video" : "🖼️ Carousel"}
+                          </Badge>
+                          <span style={{ color: T.muted, fontSize: "14px" }}>{isOpen ? "▲" : "▼"}</span>
+                        </div>
                       </div>
 
                       <div style={{ display: "flex", gap: "6px", flexWrap: "wrap", marginBottom: "12px" }}>
@@ -1347,6 +1391,44 @@ const interval = setInterval(async () => {
                           </span>
                         ))}
                       </div>
+
+                      {isOpen && (
+                        <div style={{
+                          marginBottom: "12px", border: `1px solid ${T.border}`,
+                          borderRadius: T.radiusSm, overflow: "hidden",
+                        }}>
+                          <div style={{
+                            display: "flex", justifyContent: "space-between", alignItems: "center",
+                            padding: "8px 14px", background: T.faint, borderBottom: `1px solid ${T.border}`,
+                          }}>
+                            <span style={{ fontSize: "11px", fontWeight: 700, color: T.muted, letterSpacing: "0.08em", textTransform: "uppercase" }}>
+                              Full Output
+                            </span>
+                            <div style={{ display: "flex", gap: "8px" }}>
+                              <Btn variant="ghost" style={{ fontSize: "12px", padding: "6px 12px" }}
+                                disabled={!fullOutput}
+                                onClick={() => fullOutput && navigator.clipboard.writeText(fullOutput)}>
+                                Copy
+                              </Btn>
+                              <Btn variant="ghost" style={{ fontSize: "12px", padding: "6px 12px" }}
+                                onClick={() => setGenomeExpanded(null)}>
+                                Close
+                              </Btn>
+                            </div>
+                          </div>
+                          <div style={{
+                            padding: "20px", fontSize: "13px", lineHeight: 1.8,
+                            color: T.body, whiteSpace: "pre-wrap",
+                            maxHeight: "500px", overflowY: "auto", background: T.white,
+                          }}>
+                            {isFetching
+                              ? <span style={{ color: T.muted, fontStyle: "italic" }}>Loading full output...</span>
+                              : fullOutput
+                                ? fullOutput
+                                : <span style={{ color: T.muted, fontStyle: "italic" }}>No full output available for this content ID.</span>}
+                          </div>
+                        </div>
+                      )}
 
                       {item.stage === "Templated" && (
                         <div style={{
@@ -1383,7 +1465,8 @@ const interval = setInterval(async () => {
                         </div>
                       </div>
                     </Card>
-                  ))}
+                  );
+                  })}
               </div>
             )}
           </>
