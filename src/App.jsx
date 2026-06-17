@@ -286,8 +286,58 @@ const [postnitroOutputs, setPostnitroOutputs] = useState({});
   const [genomeExpanded, setGenomeExpanded] = useState(null);
   const [genomeOutputs, setGenomeOutputs] = useState({});
   const [genomeFetching, setGenomeFetching] = useState({});
+  const [copiedKey, setCopiedKey] = useState(null);
 
   const ALL_FORMATS = [...VIDEO_FORMATS, ...CAROUSEL_FORMATS];
+
+  // Copy text to clipboard and flash a "✓ Copied!" confirmation on the button
+  // identified by `key` for 2 seconds before reverting.
+  const copyWithFeedback = (key, text) => {
+    navigator.clipboard.writeText(text);
+    setCopiedKey(key);
+    setTimeout(() => {
+      setCopiedKey(prev => (prev === key ? null : prev));
+    }, 2000);
+  };
+
+  // Trigger a browser download of `content` as a file named `filename`.
+  const downloadFile = (filename, content, mime = "text/plain") => {
+    const blob = new Blob([content], { type: `${mime};charset=utf-8` });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement("a");
+    a.href = url;
+    a.download = filename;
+    document.body.appendChild(a);
+    a.click();
+    document.body.removeChild(a);
+    URL.revokeObjectURL(url);
+  };
+
+  // Escape a single value for safe inclusion in a CSV cell.
+  const csvCell = (value) => {
+    const s = value == null ? "" : String(value);
+    return /[",\n]/.test(s) ? `"${s.replace(/"/g, '""')}"` : s;
+  };
+
+  // Build and download a CSV export of the currently filtered Genome content.
+  const downloadGenomeResults = () => {
+    const headers = ["Content ID", "Date", "Persona", "Content Type", "Format", "Offset", "Platform", "Stage", "Hook", "Caption"];
+    const rows = genomeFiltered.map(item => [
+      item.id,
+      item.date,
+      item.persona,
+      item.type,
+      item.format,
+      `${item.offset}/5`,
+      item.attributes?.platform || "TikTok",
+      item.stage,
+      item.hook || "",
+      item.caption || "",
+    ]);
+    const csv = [headers, ...rows].map(r => r.map(csvCell).join(",")).join("\r\n");
+    const today = new Date().toLocaleDateString("en-CA"); // YYYY-MM-DD
+    downloadFile(`Lipitrex-Content-Export-${today}.csv`, csv, "text/csv");
+  };
 
   // Shared style for the Genome filter-bar dropdowns.
   const genomeSelectStyle = {
@@ -319,7 +369,7 @@ const [postnitroOutputs, setPostnitroOutputs] = useState({});
   });
 
   // Build a contentLog entry (with all derived display fields) from core attributes.
-  const buildEntry = ({ id, persona, format, type, offset, stage, date, ts, fullOutput }) => ({
+  const buildEntry = ({ id, persona, format, type, offset, stage, date, ts, fullOutput, hook, caption }) => ({
     id,
     persona: persona.name,
     personaId: persona.id,
@@ -333,6 +383,8 @@ const [postnitroOutputs, setPostnitroOutputs] = useState({});
     date,
     ts: ts ?? Date.now(),
     fullOutput: fullOutput ?? null,
+    hook: hook ?? (fullOutput ? extractSection(fullOutput, "HOOK") : ""),
+    caption: caption ?? (fullOutput ? extractSection(fullOutput, "CAPTION") : ""),
     attributes: {
       contentType: type,
       persona: persona.name,
@@ -389,6 +441,8 @@ const [postnitroOutputs, setPostnitroOutputs] = useState({});
           date: row.created_at ? new Date(row.created_at).toLocaleDateString() : new Date().toLocaleDateString(),
           ts: row.created_at ? new Date(row.created_at).getTime() : Date.now(),
           fullOutput: row.full_output ?? null,
+          hook: row.hook ?? null,
+          caption: row.caption ?? null,
         });
       });
 
@@ -903,8 +957,8 @@ const interval = setInterval(async () => {
                               </Btn>
                             )}
                             <Btn variant="ghost" style={{ fontSize: "12px", padding: "6px 12px" }}
-                              onClick={e => { e.stopPropagation(); navigator.clipboard.writeText(result); }}>
-                              Copy
+                              onClick={e => { e.stopPropagation(); copyWithFeedback(`gen_${key}`, result); }}>
+                              {copiedKey === `gen_${key}` ? "✓ Copied!" : "Copy"}
                             </Btn>
                           </>
                         )}
@@ -1332,12 +1386,19 @@ const interval = setInterval(async () => {
                 </select>
               </div>
 
-              {/* Filtered count */}
-              <div style={{ marginLeft: "auto", textAlign: "right" }}>
-                <div style={{ fontSize: "13px", fontWeight: 700, color: T.gold }}>
-                  Showing {genomeFiltered.length} of {contentLog.length}
+              {/* Filtered count + bulk export */}
+              <div style={{ marginLeft: "auto", display: "flex", alignItems: "center", gap: "14px" }}>
+                <div style={{ textAlign: "right" }}>
+                  <div style={{ fontSize: "13px", fontWeight: 700, color: T.gold }}>
+                    Showing {genomeFiltered.length} of {contentLog.length}
+                  </div>
+                  <div style={{ fontSize: "11px", color: T.subtle, marginTop: "2px" }}>content IDs</div>
                 </div>
-                <div style={{ fontSize: "11px", color: T.subtle, marginTop: "2px" }}>content IDs</div>
+                <Btn variant="secondary" style={{ fontSize: "12px", padding: "8px 14px" }}
+                  disabled={genomeFiltered.length === 0}
+                  onClick={downloadGenomeResults}>
+                  ⬇ Download Results
+                </Btn>
               </div>
             </div>
 
@@ -1407,8 +1468,13 @@ const interval = setInterval(async () => {
                             <div style={{ display: "flex", gap: "8px" }}>
                               <Btn variant="ghost" style={{ fontSize: "12px", padding: "6px 12px" }}
                                 disabled={!fullOutput}
-                                onClick={() => fullOutput && navigator.clipboard.writeText(fullOutput)}>
-                                Copy
+                                onClick={() => fullOutput && copyWithFeedback(`genome_${item.id}`, fullOutput)}>
+                                {copiedKey === `genome_${item.id}` ? "✓ Copied!" : "Copy"}
+                              </Btn>
+                              <Btn variant="ghost" style={{ fontSize: "12px", padding: "6px 12px" }}
+                                disabled={!fullOutput}
+                                onClick={() => fullOutput && downloadFile(`${item.id}.txt`, fullOutput)}>
+                                Download
                               </Btn>
                               <Btn variant="ghost" style={{ fontSize: "12px", padding: "6px 12px" }}
                                 onClick={() => setGenomeExpanded(null)}>
