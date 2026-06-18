@@ -1,22 +1,24 @@
 import type { Config } from "@netlify/functions";
 import { desc } from "drizzle-orm";
 import { db } from "../../db/index.js";
-import { carousel_outputs, content_posts, genome_events } from "../../db/schema.js";
+import { carousel_outputs, content_posts, genome_events, video_outputs } from "../../db/schema.js";
 
 // Data API backing the dashboard. Replaces the former direct Supabase client.
-//   GET  /api/content            -> { posts, events, carousels }
+//   GET  /api/content            -> { posts, events, carousels, videos }
 //   POST /api/content  (post)     -> insert a generated content package
 //   POST /api/content  (event)    -> append a lifecycle stage transition
 //   POST /api/content  (carousel) -> store PostNitro carousel slide images
+//   POST /api/content  (video)    -> store a completed HeyGen video render
 export default async (req: Request) => {
   try {
     if (req.method === "GET") {
-      const [posts, events, carousels] = await Promise.all([
+      const [posts, events, carousels, videos] = await Promise.all([
         db.select().from(content_posts).orderBy(desc(content_posts.created_at)),
         db.select().from(genome_events).orderBy(desc(genome_events.created_at)),
         db.select().from(carousel_outputs).orderBy(desc(carousel_outputs.created_at)),
+        db.select().from(video_outputs).orderBy(desc(video_outputs.generated_at)),
       ]);
-      return Response.json({ posts, events, carousels });
+      return Response.json({ posts, events, carousels, videos });
     }
 
     if (req.method === "POST") {
@@ -64,6 +66,20 @@ export default async (req: Request) => {
             image_urls,
             status: "COMPLETED",
             created_at: body.generated_at ? new Date(body.generated_at) : undefined,
+          })
+          .returning();
+        return Response.json(row, { status: 201 });
+      }
+
+      if (body.kind === "video") {
+        const [row] = await db
+          .insert(video_outputs)
+          .values({
+            post_id: body.post_id,
+            persona_id: body.persona_id,
+            video_id: body.video_id,
+            video_url: body.video_url,
+            generated_at: body.generated_at ? new Date(body.generated_at) : undefined,
           })
           .returning();
         return Response.json(row, { status: 201 });

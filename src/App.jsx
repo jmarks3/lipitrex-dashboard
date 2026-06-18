@@ -266,6 +266,7 @@ export default function LipitrexDashboard() {
   const [heygenStatus, setHeygenStatus] = useState({});
   const [postnitroStatus, setPostnitroStatus] = useState({});
 const [postnitroOutputs, setPostnitroOutputs] = useState({});
+  const [heygenOutputs, setHeygenOutputs] = useState({});
   const [videoMetrics, setVideoMetrics] = useState(() => {
     const m = {};
     VIDEO_FORMATS.forEach(f => { m[f.id] = {}; PERSONAS.forEach(p => { m[f.id][p.id] = { views: "", saves: "", comments: "", completion: "", hold_2s: "", view_6s: "" }; }); });
@@ -407,11 +408,11 @@ const [postnitroOutputs, setPostnitroOutputs] = useState({});
   // Load existing content + latest lifecycle stage from Netlify DB on mount.
   useEffect(() => {
     const load = async () => {
-      let posts, events, carousels;
+      let posts, events, carousels, videos;
       try {
         const res = await fetch("/api/content");
         if (!res.ok) return;
-        ({ posts, events, carousels } = await res.json());
+        ({ posts, events, carousels, videos } = await res.json());
       } catch {
         return;
       }
@@ -462,6 +463,19 @@ const [postnitroOutputs, setPostnitroOutputs] = useState({});
         }
       });
       if (Object.keys(restoredOutputs).length) setPostnitroOutputs(restoredOutputs);
+
+      // Restore HeyGen video links. Keyed per persona ID (most recent render
+      // wins) to mirror the heygenOutputs state shape.
+      const sortedVideos = (videos || []).slice().sort(
+        (a, b) => new Date(b.generated_at || 0) - new Date(a.generated_at || 0)
+      );
+      const restoredVideos = {};
+      sortedVideos.forEach(row => {
+        if (!(row.persona_id in restoredVideos) && row.video_url) {
+          restoredVideos[row.persona_id] = row.video_url;
+        }
+      });
+      if (Object.keys(restoredVideos).length) setHeygenOutputs(restoredVideos);
     };
     load();
   }, []);
@@ -642,6 +656,14 @@ Make it specific, vivid, and warm. The viewer should feel understood before they
     setHeygenStatus(prev => ({ ...prev, [key]: "sending" }));
     const scriptMatch = result.match(/SCRIPT[\s\S]*?(?=\n##|\n---|\n🖥️|$)/i);
     const script = scriptMatch ? scriptMatch[0].replace(/^SCRIPT\s*/i, "").trim() : result.slice(0, 1500);
+
+    // Resolve the persisted content ID for this persona's video so the saved
+    // row can satisfy the video_outputs -> content_posts foreign key.
+    const logEntry = contentLog.find(
+      item => item.personaId === persona.id && item.type === "video"
+    );
+    const postId = genomeId || logEntry?.id || null;
+
     try {
       const res = await fetch("/.netlify/functions/heygen", {
         method: "POST",
@@ -649,11 +671,59 @@ Make it specific, vivid, and warm. The viewer should feel understood before they
         body: JSON.stringify({ script, personaId: persona.id, genomeId: genomeId || `LT-V-P${persona.id}` }),
       });
       const data = await res.json();
-      if (data.data?.video_id || data.video_id) {
-        setHeygenStatus(prev => ({ ...prev, [key]: "success" }));
-      } else {
+      const videoId = data.data?.video_id || data.video_id;
+      if (!videoId) {
         setHeygenStatus(prev => ({ ...prev, [key]: "error" }));
+        return;
       }
+
+      // Render is queued — poll the status endpoint until HeyGen reports the
+      // video as completed, then store and persist the resulting URL.
+      setHeygenStatus(prev => ({ ...prev, [key]: "processing" }));
+      let attempts = 0;
+      const interval = setInterval(async () => {
+        attempts++;
+        if (attempts > 60) {
+          clearInterval(interval);
+          setHeygenStatus(prev => ({ ...prev, [key]: "error" }));
+          return;
+        }
+        try {
+          const statusRes = await fetch(`/.netlify/functions/heygen-status?video_id=${videoId}`);
+          const statusData = await statusRes.json();
+          if (statusData.status === "completed") {
+            clearInterval(interval);
+            setHeygenStatus(prev => ({ ...prev, [key]: "success" }));
+            if (statusData.video_url) {
+              setHeygenOutputs(prev => ({ ...prev, [persona.id]: statusData.video_url }));
+
+              // Persist the video URL so the Watch Video link survives a refresh.
+              try {
+                await fetch("/api/content", {
+                  method: "POST",
+                  headers: { "Content-Type": "application/json" },
+                  body: JSON.stringify({
+                    kind: "video",
+                    post_id: postId,
+                    persona_id: persona.id,
+                    video_id: videoId,
+                    video_url: statusData.video_url,
+                    generated_at: new Date().toISOString(),
+                  }),
+                });
+              } catch {
+                // Non-blocking — the link already renders from local state.
+              }
+            }
+          } else if (statusData.status === "failed") {
+            clearInterval(interval);
+            setHeygenStatus(prev => ({ ...prev, [key]: "error" }));
+          }
+        } catch {
+          clearInterval(interval);
+          setHeygenStatus(prev => ({ ...prev, [key]: "error" }));
+        }
+      }, 10000);
     } catch (err) {
       setHeygenStatus(prev => ({ ...prev, [key]: "error" }));
     }
@@ -933,16 +1003,30 @@ const interval = setInterval(async () => {
                         {result && !isLoading && (
                           <>
                             {heygenConnected && genType === "video" && (
-                              <Btn variant="secondary" style={{
-                                fontSize: "12px", padding: "6px 12px",
-                                background: heygenStatus[`heygen_${p.id}`] === "success" ? T.greenLight :
-                                  heygenStatus[`heygen_${p.id}`] === "error" ? T.redLight : undefined,
-                              }} onClick={e => sendToHeyGen(e, p, result, null)}>
-                                {heygenStatus[`heygen_${p.id}`] === "sending" ? "Sending..." :
-                                  heygenStatus[`heygen_${p.id}`] === "success" ? "✓ Sent to HeyGen" :
-                                  heygenStatus[`heygen_${p.id}`] === "error" ? "Error — Retry" :
-                                  "Send to HeyGen →"}
-                              </Btn>
+                              <div style={{ display: "flex", flexDirection: "column", gap: "6px", alignItems: "stretch" }}>
+                                <Btn variant="secondary" style={{
+                                  fontSize: "12px", padding: "6px 12px",
+                                  background: heygenStatus[`heygen_${p.id}`] === "success" ? T.greenLight :
+                                    heygenStatus[`heygen_${p.id}`] === "error" ? T.redLight : undefined,
+                                }} onClick={e => sendToHeyGen(e, p, result, null)}>
+                                  {heygenStatus[`heygen_${p.id}`] === "sending" ? "Sending..." :
+                                    heygenStatus[`heygen_${p.id}`] === "processing" ? "Rendering..." :
+                                    heygenStatus[`heygen_${p.id}`] === "success" ? "✓ Sent to HeyGen" :
+                                    heygenStatus[`heygen_${p.id}`] === "error" ? "Error — Retry" :
+                                    "Send to HeyGen →"}
+                                </Btn>
+                                {heygenOutputs[p.id] && (
+                                  <a href={heygenOutputs[p.id]} target="_blank" rel="noopener noreferrer"
+                                    onClick={e => e.stopPropagation()}
+                                    style={{
+                                      display: "block", textAlign: "center", textDecoration: "none",
+                                      fontSize: "12px", fontWeight: 600, padding: "6px 12px",
+                                      borderRadius: T.radiusSm, background: T.blueLight, color: T.blue,
+                                    }}>
+                                    Watch Video ▶
+                                  </a>
+                                )}
+                              </div>
                             )}
                             {genType === "carousel" && (
                               <Btn variant="secondary" style={{
