@@ -85,6 +85,16 @@ export const carousel_outputs = pgTable("carousel_outputs", {
   created_at: timestamp("created_at").defaultNow(),
 });
 
+// HeyGen video renders produced for a post. One row per completed video.
+export const video_outputs = pgTable("video_outputs", {
+  id: serial().primaryKey(),
+  post_id: text("post_id").references(() => content_posts.id),
+  persona_id: integer("persona_id"),
+  video_id: text("video_id"),
+  video_url: text("video_url"),
+  generated_at: timestamp("generated_at").defaultNow(),
+});
+
 // Attribute tags attached to a post (key/value pairs surfaced in the Genome tab).
 export const content_tags = pgTable("content_tags", {
   id: serial().primaryKey(),
