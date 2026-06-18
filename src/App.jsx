@@ -405,6 +405,59 @@ const [postnitroOutputs, setPostnitroOutputs] = useState({});
     return m ? m[1].trim() : "";
   };
 
+  // Pull only the words the avatar should speak out of the ## SCRIPT section.
+  // The raw section is loaded with production directions ([HOOK 0-3s], [BODY],
+  // [CTA — soft/medium/hard]), timestamps, bold markers, and soft/medium/hard
+  // CTA variants. HeyGen needs clean spoken dialogue, so strip all of that and
+  // keep only the MEDIUM CTA option among the soft/medium/hard choices.
+  const extractSpokenScript = (text) => {
+    // 1. Isolate the ## SCRIPT section (up to the next ## heading).
+    const section = extractSection(text, "SCRIPT");
+    const raw = section || text;
+
+    const lines = raw.split("\n");
+    const cleaned = [];
+    // Tracks which CTA variant we're inside so only MEDIUM survives.
+    let ctaMode = null; // null | "keep" | "drop"
+
+    for (let line of lines) {
+      // 6. Drop markdown list/quote lines.
+      if (/^\s*[*>]/.test(line)) continue;
+
+      // 5. Detect soft/medium/hard CTA labels and keep only MEDIUM's text.
+      const labelMatch = line.match(/^\s*\**\s*(SOFT|MEDIUM|HARD)\s*\**\s*:?\s*/i);
+      if (labelMatch) {
+        const label = labelMatch[1].toUpperCase();
+        ctaMode = label === "MEDIUM" ? "keep" : "drop";
+        // Remove the label itself, keep any trailing inline text on the line.
+        line = line.slice(labelMatch[0].length);
+        if (ctaMode === "drop") continue;
+        if (!line.trim()) continue;
+      } else if (ctaMode === "drop") {
+        // Continuation lines belong to the SOFT/HARD block we're skipping.
+        if (!line.trim()) { ctaMode = null; }
+        continue;
+      }
+
+      let cleanedLine = line
+        // 2. Remove bracketed direction notes like [HOOK 0-3s], [CTA — soft].
+        .replace(/\[[^\]]*\]/g, "")
+        // 3. Remove timestamp markers like 0–4s, 4-38s (en-dash or hyphen).
+        .replace(/\b\d+\s*[–-]\s*\d+\s*s\b/gi, "")
+        // 4. Remove bold/emphasis markers.
+        .replace(/\*\*/g, "")
+        // 7. Strip any remaining markdown symbols.
+        .replace(/[#*_>`~]/g, "")
+        .replace(/\s{2,}/g, " ")
+        .trim();
+
+      if (cleanedLine) cleaned.push(cleanedLine);
+    }
+
+    // 8 & 9. Join into clean spoken dialogue, capped at HeyGen's 1500 chars.
+    return cleaned.join(" ").replace(/\s{2,}/g, " ").trim().slice(0, 1500);
+  };
+
   // Load existing content + latest lifecycle stage from Netlify DB on mount.
   useEffect(() => {
     const load = async () => {
@@ -654,8 +707,7 @@ Make it specific, vivid, and warm. The viewer should feel understood before they
     e.stopPropagation();
     const key = `heygen_${persona.id}`;
     setHeygenStatus(prev => ({ ...prev, [key]: "sending" }));
-    const scriptMatch = result.match(/SCRIPT[\s\S]*?(?=\n##|\n---|\n🖥️|$)/i);
-    const script = scriptMatch ? scriptMatch[0].replace(/^SCRIPT\s*/i, "").trim() : result.slice(0, 1500);
+    const script = extractSpokenScript(result);
 
     // Resolve the persisted content ID for this persona's video so the saved
     // row can satisfy the video_outputs -> content_posts foreign key.
