@@ -139,7 +139,7 @@ VIDEO LENGTH TARGETS (data-backed):
 - Testimonial / POV: 30 seconds (story arc sweet spot)
 - Educational: 45–55 seconds (value justifies length)
 - Trend/Sound: 15–20 seconds (native platform behavior)
-Scripts must be tight. If a word can be cut, cut it.
+Scripts must feel natural. Tightness comes from cutting redundant ideas, not the connective tissue that makes speech sound human.
 
 COMPLIANCE — Structure/function claims only:
 ✅ SAFE: "supports healthy fluid balance," "promotes healthy circulation," "traditionally used to support fluid balance"
@@ -161,7 +161,7 @@ List all attribute tags: content type, persona, format, hook type, pain point, i
 One line. Stops the scroll. ${type === 'video' ? `Spoken aloud in first 2 seconds. Target length: ${persona.length}` : 'Bold text on slide 1.'}
 
 ## ${type === 'video' ? 'SCRIPT' : 'SLIDE BREAKDOWN'}
-${type === 'video' ? `Full script timed to ${persona.length}. Format: [HOOK 0-3s] [BODY] [CTA — soft/medium/hard options]` : '3 slides maximum. Every slide: number, headline text, body text (1-2 sentences max), HeyGen visual direction. Slide 1: hook. Slide 2: education/value. Slide 3: CTA with soft product mention.'}
+${type === 'video' ? `Full script timed to ${persona.length}. The SCRIPT section contains only clean spoken dialogue — no bracketed directions, no timestamps, no markdown. Write the body as one continuous flowing paragraph with natural connective tissue. Never list ingredients as specs. Write Soft, Medium, and Hard CTA options as separate labeled paragraphs of clean spoken words only. The viewer should feel like they're overhearing someone tell a friend, not watching someone deliver information.` : '3 slides maximum. Every slide: number, headline text, body text (1-2 sentences max), HeyGen visual direction. Slide 1: hook. Slide 2: education/value. Slide 3: CTA with soft product mention.'}
 
 ## HEYGEN ${type === 'video' ? 'VIDEO' : 'IMAGE'} BRIEF
 ${type === 'video' ? 'Avatar selection (age, appearance, energy), scene, setting, wardrobe, delivery pace, b-roll, text overlay timing, audio mood' : 'Visual style, color palette, typography, slide layout, brand consistency for HeyGen image generation'}
