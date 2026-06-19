@@ -422,7 +422,9 @@ const [postnitroOutputs, setPostnitroOutputs] = useState({});
 
     for (let line of lines) {
       // 6. Drop markdown list/quote lines.
-      if (/^\s*[*>]/.test(line)) continue;
+      if (/^\s*\*/.test(line)) continue;
+
+      line = line.replace(/^\s*>\s*/, "");
 
       // 5. Detect soft/medium/hard CTA labels and keep only MEDIUM's text.
       const labelMatch = line.match(/^\s*\**\s*(SOFT|MEDIUM|HARD)\s*\**\s*:?\s*/i);
