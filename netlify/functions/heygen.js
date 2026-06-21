@@ -34,6 +34,8 @@ exports.handler = async function(event) {
       };
     }
 
+    console.log(script.slice(0, 500));
+
     const response = await fetch("https://api.heygen.com/v2/video/generate", {
       method: "POST",
       headers: {
