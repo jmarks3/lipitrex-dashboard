@@ -618,6 +618,35 @@ const [postnitroOutputs, setPostnitroOutputs] = useState({});
   const generatePost = async (persona, type) => {
     const format = getFormatForPersona(persona.id, type);
     const key = `${type}_${persona.id}`;
+
+    // Wipe every output artifact from the previous generation for this persona/type
+    // so nothing stale stays visible or accessible until the new run produces its own.
+    if (type === 'carousel') {
+      const carouselKey = `postnitro_${persona.id}`;
+      setPostnitroOutputs(prev => {
+        const next = { ...prev };
+        delete next[carouselKey];
+        return next;
+      });
+      setPostnitroStatus(prev => {
+        const next = { ...prev };
+        delete next[carouselKey];
+        return next;
+      });
+    } else if (type === 'video') {
+      const heygenStateKey = `heygen_${persona.id}`;
+      setHeygenOutputs(prev => {
+        const next = { ...prev };
+        delete next[persona.id];
+        return next;
+      });
+      setHeygenStatus(prev => {
+        const next = { ...prev };
+        delete next[heygenStateKey];
+        return next;
+      });
+    }
+
     setLoading(prev => ({ ...prev, [key]: true }));
     setResults(prev => ({ ...prev, [key]: "" }));
 
