@@ -1098,17 +1098,6 @@ const interval = setInterval(async () => {
                                     heygenStatus[`heygen_${p.id}`] === "error" ? "Error — Retry" :
                                     "Send to HeyGen →"}
                                 </Btn>
-                                {heygenOutputs[p.id] && (
-                                  <a href={heygenOutputs[p.id]} target="_blank" rel="noopener noreferrer"
-                                    onClick={e => e.stopPropagation()}
-                                    style={{
-                                      display: "block", textAlign: "center", textDecoration: "none",
-                                      fontSize: "12px", fontWeight: 600, padding: "6px 12px",
-                                      borderRadius: T.radiusSm, background: T.blueLight, color: T.blue,
-                                    }}>
-                                    Watch Video ▶
-                                  </a>
-                                )}
                               </div>
                             )}
                             {genType === "carousel" && (
@@ -1201,6 +1190,44 @@ const interval = setInterval(async () => {
           </div>
         </a>
       ))}
+    </div>
+  </div>
+)}
+{heygenOutputs[p.id] && genType === 'video' && (
+  <div style={{ padding: "16px 20px", borderTop: `1px solid ${T.border}` }}>
+    <div style={{ fontSize: "11px", fontWeight: 700, color: T.muted, textTransform: "uppercase", letterSpacing: "0.08em", marginBottom: "12px" }}>
+      Generated Video
+    </div>
+    <div style={{ display: "flex", gap: "10px", alignItems: "flex-start" }}>
+      <div style={{ position: "relative" }}>
+        <video
+          src={heygenOutputs[p.id]}
+          controls
+          style={{
+            width: "120px",
+            height: "213px",
+            objectFit: "cover",
+            borderRadius: T.radiusSm,
+            border: `1px solid ${T.border}`,
+            background: T.ink,
+          }}
+        />
+        <div style={{ fontSize: "10px", color: T.muted, textAlign: "center", marginTop: "4px" }}>
+          Click to play ▶
+        </div>
+      </div>
+      <a
+        href={heygenOutputs[p.id]}
+        target="_blank"
+        rel="noopener noreferrer"
+        onClick={e => e.stopPropagation()}
+        style={{
+          fontSize: "11px", fontWeight: 600, color: T.blue,
+          textDecoration: "none", alignSelf: "flex-end", paddingBottom: "20px",
+        }}
+      >
+        Open full screen ↗
+      </a>
     </div>
   </div>
 )}
