@@ -870,14 +870,9 @@ Make it specific, vivid, and warm. The viewer should feel understood before they
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({ slides }),
     });
-    if (!initRes.ok) {
-      const errorText = await initRes.text();
-      console.error("PostNitro initiate failed:", initRes.status, errorText);
-      setPostnitroStatus(prev => ({ ...prev, [key]: "error" }));
-      return;
-    }
     const initData = await initRes.json();
-    if (!initData.embedPostId) {
+    if (!initRes.ok || !initData.embedPostId) {
+      console.error("PostNitro initiate failed:", initRes.status, initData);
       setPostnitroStatus(prev => ({ ...prev, [key]: "error" }));
       return;
     }
