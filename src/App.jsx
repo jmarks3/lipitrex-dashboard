@@ -864,11 +864,18 @@ Make it specific, vivid, and warm. The viewer should feel understood before they
 
   try {
     // Step 1 — initiate
+    console.log("PostNitro payload:", JSON.stringify({ slides }, null, 2));
     const initRes = await fetch("https://lipitrex-dashboard.vercel.app/api/postnitro", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({ slides }),
     });
+    if (!initRes.ok) {
+      const errorText = await initRes.text();
+      console.error("PostNitro initiate failed:", initRes.status, errorText);
+      setPostnitroStatus(prev => ({ ...prev, [key]: "error" }));
+      return;
+    }
     const initData = await initRes.json();
     if (!initData.embedPostId) {
       setPostnitroStatus(prev => ({ ...prev, [key]: "error" }));
